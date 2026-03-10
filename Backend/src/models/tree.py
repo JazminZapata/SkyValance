@@ -1,10 +1,14 @@
+from node import Node
+
 class Tree:
-    
+
+  # Método para retornar la raiz del árbol
+  def getRoot(self):
+    return self.root
     
   # constructor del árbol que se crea inicialmente con una raiz vacía
   def __init__(self):
     self.root = None
-    
     
   def insert(self, node):
     # verificar si no hay raiz para asignar el nuevo como raiz
@@ -12,9 +16,67 @@ class Tree:
       self.root = node
     else:
       self.__insert(self.root, node)
-      
+
+# Método que permita realizar la búsqueda de un nodo mediante su valor
+  # debe seguir la lógica de las reglas de un BST
+  def search(self, value):
+    #validar si existe una raíz en el árbol
+    if self.root is None:
+      raise Exception("El árbol no tiene una raíz.")
+    else:
+      return self.__search(self.root, value)
+
+  # función recursiva para atender la búsqueda
+  def __search(self, currentRoot, value):
+    # validar si el valor buscado es igual a la raiz actual
+    # print(f"El valor del nodo es: {currentRoot.getValue()}")
+    # print(f"Comparación: {currentRoot.getValue() == value}" )
+    if currentRoot.getValue() == value:
+      # si es así se retorna la actual raiz
+      return currentRoot
+    # sino se valida si se debe ir por la derecha o por la izquierda
+    elif value > currentRoot.getValue():
+      # si es mayor, se verifica que exista un hijo derecho
+      # en caso de no existir se genera
+      if currentRoot.getRightChild() is None:
+        return None
+      else:
+        # se pasa la solicitud de búsqueda al hijo derecho
+        return self.__search(currentRoot.getRightChild(), value)
+    else:
+      # si es menor, se verifica que exista un hijo izquierdo
+      # en caso de no existir se genera
+      if currentRoot.getLeftChild() is None:
+        return None
+      else:
+        # se pasa la solicitud de búsqueda al hijo izquierdo
+        return self.__search(currentRoot.getLeftChild(), value)
     
- # Método para recorrido en anchura
+# Método para dibujar el árbol en forma de árbol
+  def print_tree(self):
+    if self.root is None:
+      print("El árbol está vacío.")
+    else:
+      self.__print_tree(self.root, "", True)
+
+  # Methodo para imprimir el árbol BST
+  def __print_tree(self, node=None, prefix="", is_left=True):
+      if node is not None:
+          # Print right subtree
+          if node.getRightChild():
+              new_prefix = prefix + ("│   " if is_left else "    ")
+              self.__print_tree(node.getRightChild(), new_prefix, False)
+
+          # Print current node
+          connector = "└── " if is_left else "┌── "
+          print(prefix + connector + str(node.getValue()))
+
+          # Print left subtree
+          if node.getLeftChild():
+              new_prefix = prefix + ("    " if is_left else "│   ")
+              self.__print_tree(node.getLeftChild(), new_prefix, True)
+
+  # Método para recorrido en anchura
   def breadthFirstSearch(self):
     # verificar si el árbol está vacío
     if self.root is None:
@@ -63,7 +125,6 @@ class Tree:
         if currentNode.getRightChild() is not None:
           queue.append(currentNode.getRightChild())
       return result
-
 
 
   # Método para realizar el recorrido en profundidad tipo  Pre-Order
@@ -163,7 +224,7 @@ class Tree:
     # La cantidad de padres encima de la hoja determinará el número de aristas que hay hasta llegar a el desde la raíz
     return len(parents)
 
- # Método que permite calcular la altura de un nodo
+  # Método que permite calcular la altura de un nodo
   def getHeightNode(self, node):
     if node is None:
       return -1
@@ -185,11 +246,124 @@ class Tree:
       # se incrementa en 1 al retornar al padre para representar la arista que los une
       return maxHeight + 1
   
-   # Cantidad de Nodos (Peso del árbol)
+    # Cantidad de Nodos (Peso del árbol)
   def treeWeight(self):
     result = self.breadthFirstSearch()
     return len(result)
+  
+  # Método para eliminar
+  def delete(self, value):
+    if self.root is None:
+      print("El árbol está vacío.")
+    else:
+      node = self.__search(self.root, value)
+      if node is None:
+        print(f"El valor {value} no se encuentra en el árbol.")
+      else:
+        self.__deleteNode(node)
+
+
+  # Método que evalúa cada uno de los casos de eliminar y procede según sea
+  def __deleteNode(self, node):
+    # identificar el caso de eliminación
+    nodeCase = self.IdentifyDeletionCase(node)
+    match nodeCase:
+      case 1:
+        self.__deleteLeafNode(node)
+      case 2:
+        self.__deleteNodeWithOneChild(node)
+      case 3:
+        self.__deleteNodeWithTwoChildren(node)
+
+  # Método que permite eliminar un nodo hoja del árbol
+  def __deleteLeafNode(self, node):
+    if node.getValue() < node.getParent().getValue():
+      node.getParent().setLeftChild(None)
+    else:
+      node.getParent().setRightChild(None)
+    node.setParent(None)
+
+  # Método que permite eliminar un nodo con un hijo del árbol
+  def __deleteNodeWithOneChild(self, node):
+    # preguntamos si el nodo a eliminar tiene hijo izquierdo
+    if node.getLeftChild() is not None:
+      #si tiene, entonces accedemos al padre de este nodo y preguntamos si el padre es mayor o menor
+      #para determinar la posición final del hijo que reemplazará el nodo a eliminar
+      if node.getParent().getValue() < node.getValue():
+        node.getParent().setRightChild(node.getLeftChild())
+      else:
+        node.getParent().setLeftChild(node.getLeftChild())
+
+      # Seteamos como nuevo padre del hijo izquierdo el que era su "abuelo" o padre del nodo a eliminar
+      node.getLeftChild().setParent(node.getParent())
+      node.setLeftChild(None)
+
+    else:
+
+      if node.getParent().getValue() > node.getValue():
+        node.getParent().setLeftChild(node.getRightChild())
+      else:
+        node.getParent().setLeftChild(node.getRightChild())
+
+      node.getRightChild().setParent(node.getParent())
+      node.setRightChild(None)
+
+    # Le quitamos el padre al nodo a eliminar
+    node.setParent(None)
     
-    
-    
-    
+
+    # eliminar nodo con dos hijos usando el predecesor
+  def __deleteNodeWithTwoChildren(self, node):
+
+      # buscar el predecesor 
+      predecesor = node.getLeftChild()
+
+      while predecesor.getRightChild() is not None:
+          predecesor = predecesor.getRightChild()
+
+      parentPred = predecesor.getParent()
+
+      # desconectar el predecesor de su posición actual
+      if parentPred != node:
+          parentPred.setRightChild(predecesor.getLeftChild())
+
+          if predecesor.getLeftChild() is not None:
+              predecesor.getLeftChild().setParent(parentPred)
+
+          predecesor.setLeftChild(node.getLeftChild())
+          node.getLeftChild().setParent(predecesor)
+
+      # conectar hijo derecho del nodo eliminado
+      predecesor.setRightChild(node.getRightChild())
+
+      if node.getRightChild() is not None:
+          node.getRightChild().setParent(predecesor)
+
+      # conectar el predecesor con el padre del nodo eliminado
+      parentNode = node.getParent()
+      predecesor.setParent(parentNode)
+
+      if parentNode is None:
+          self.root = predecesor
+      else:
+          if parentNode.getLeftChild() == node:
+              parentNode.setLeftChild(predecesor)
+          else:
+              parentNode.setRightChild(predecesor)
+
+      # limpiar el nodo eliminado
+      node.setLeftChild(None)
+      node.setRightChild(None)
+      node.setParent(None)
+
+  # Método para identificar cuál es el caso de eliminación
+  # 1. Nodo hoja
+  # 2. Nodo con un hijo
+  # 3. Nodo con 2 hijos
+  def IdentifyDeletionCase(self, node):
+    nodeCase = 2
+    if(node.getLeftChild() is None and node.getRightChild() is None):
+      nodeCase = 1
+    elif(node.getLeftChild() is not None and node.getRightChild() is not None):
+      nodeCase = 3
+    return nodeCase
