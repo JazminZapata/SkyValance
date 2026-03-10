@@ -35,3 +35,4 @@ class Node:
   # obtener el valor del nodo
   def getValue(self):
     return self.value
+  
