@@ -17,8 +17,8 @@ class BST(Tree):
     if node.getValue() == currentRoot.getValue():
       print(f"El valor del nodo {node.getValue()} ya existe en el árbol.")
     else:
-      # se verifica si el valor a insertar es mayor que el actual raiz
-      if node.getValue() > currentRoot.getValue():
+      # se verifica si el valor a insertar es mayor que el actual raiz (codigo)
+      if node.getValue().codigo > currentRoot.getValue().codigo:
         # se verifica si existe un hijo derecho
         if currentRoot.getRightChild() is None:
           # si no tiene hijo derecho, se asigna el nodo como hijo derecho

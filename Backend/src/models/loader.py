@@ -1,11 +1,11 @@
 import json
-from models.node import Node
-from models.flight import Flight
+from node import Node
+from flight import Flight
 
 
 # Building the tree by insertion (it means inserting one by one from the list found on JSON file)
 # We receive an empty tree and the data from the JSON so we can start creating the nodes (flights)
-def buildByInsertion(tree, data):
+def buildByInsertion(bst, data):
 
     for flight_data in data["vuelos"]:
 
@@ -15,16 +15,17 @@ def buildByInsertion(tree, data):
             flight_data["destino"],
             flight_data["horaSalida"],
             flight_data["precioBase"],
-            flight_data["precioFinal"],
+            #flight_data["precioFinal"],
             flight_data["pasajeros"],
             flight_data["promocion"],
             flight_data["alerta"],
-            flight_data["altura"],
-            flight_data["factorEquilibrio"]
+            #flight_data["altura"],
+            #flight_data["factorEquilibrio"]
         )
 
         node = Node(flight)
-        tree.insert(node)
+        bst.insert(node)
+      
 
 
 # When it comes to Topology we have to keep the structure described in JSON File, it means that we already have the descendants
@@ -59,8 +60,10 @@ def loadTree(tree, file):
 
     with open(file, "r", encoding="utf-8") as f:
         data = json.load(f)
+        
+    tipo = data.get("tipo")
 
-    if data["tipo"] == "INSERCION":
+    if tipo == "INSERCION":
         buildByInsertion(tree, data)
-    else:
+    elif tipo is None:
         tree.root = buildByTopology(data)

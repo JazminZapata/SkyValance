@@ -1,8 +1,18 @@
 from node import Node
 from bst import BST
+from loader import loadTree
 
 # crear árbol
 tree = BST()
+tree2 = BST()
+
+
+loadTree(tree2, "Backend/json/ModoTopología.json")
+print("LOADING TREES . . .")
+print(tree2.root.getValue().codigo)
+print(tree2.root.getLeftChild().getValue().codigo)
+print(tree2.root.getRightChild().getValue().codigo)
+
 
 # valores que vamos a insertar
 values = [10, 5, 15, 3, 7, 12, 18]
@@ -58,3 +68,6 @@ tree.print_tree()
 # ------------------------
 print("\nRecorrido BFS final:")
 print(tree.breadthFirstSearch())
+
+
+

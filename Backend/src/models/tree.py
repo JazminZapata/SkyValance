@@ -1,14 +1,15 @@
 from node import Node
 
 class Tree:
+  
+  # constructor del árbol que se crea inicialmente con una raiz vacía
+  def __init__(self):
+    self.root = None
 
   # Método para retornar la raiz del árbol
   def getRoot(self):
     return self.root
     
-  # constructor del árbol que se crea inicialmente con una raiz vacía
-  def __init__(self):
-    self.root = None
     
   def insert(self, node):
     # verificar si no hay raiz para asignar el nuevo como raiz
