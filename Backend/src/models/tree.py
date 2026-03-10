@@ -10,7 +10,6 @@ class Tree:
   def getRoot(self):
     return self.root
     
-    
   def insert(self, node):
     # verificar si no hay raiz para asignar el nuevo como raiz
     if self.root is None:
@@ -32,11 +31,11 @@ class Tree:
     # validar si el valor buscado es igual a la raiz actual
     # print(f"El valor del nodo es: {currentRoot.getValue()}")
     # print(f"Comparación: {currentRoot.getValue() == value}" )
-    if currentRoot.getValue() == value:
+    if currentRoot.getValue().codigo == value:
       # si es así se retorna la actual raiz
       return currentRoot
     # sino se valida si se debe ir por la derecha o por la izquierda
-    elif value > currentRoot.getValue():
+    elif value > currentRoot.getValue().codigo:
       # si es mayor, se verifica que exista un hijo derecho
       # en caso de no existir se genera
       if currentRoot.getRightChild() is None:

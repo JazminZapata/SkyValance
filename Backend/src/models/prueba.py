@@ -32,3 +32,12 @@ tree.print_tree()
 
 print(f"\nTotal de vuelos (Peso): {tree.treeWeight()}")
 print(f"Altura del árbol: {tree.heightTree()}")
+print(f"Factor de balanceo del nodo raíz: {tree.root.getBalanceFactor()}")
+
+
+print("--- CONSULTA DE NODOS  ---")
+
+codigo = input("Ingresa el código del vuelo a consultar SU ALTURA: ")
+node1 = tree.search(codigo)
+
+print(f"Consultar altura de un nodo específico: {tree.getHeightNode(node1)}")

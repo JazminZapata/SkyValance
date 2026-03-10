@@ -31,7 +31,7 @@ def buildByTopology(data, parent=None):
         return None
 
     flight = Flight(
-        data["codigo"],
+        str(data["codigo"]),
         data["origen"],
         data["destino"],
         data["horaSalida"],
@@ -46,7 +46,7 @@ def buildByTopology(data, parent=None):
     # 2. Asignamos el padre al nodo recién creado
     node.setParent(parent)
     
-    node.setBalanceFactor(data.get("balanceFactor"))
+    node.setBalanceFactor(data.get("factorEquilibrio"))
     node.setHeight(data.get("altura"))
     node.setFinalPrice(data.get("precioFinal"))
     node.setLeftChild(buildByTopology(data["izquierdo"], parent=node))
