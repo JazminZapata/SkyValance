@@ -17,11 +17,11 @@ class AVL(Tree):
 
     # Método recursivo para insertar un nodo cuando se tiene raiz en el árbol
     def __insert(self, currentRoot, node):
-      if node.getValue() == currentRoot.getValue():
-        print(f"El valor del nodo {node.getValue()} ya existe en el árbol.")
+      if node.getValue().codigo_comp == currentRoot.getValue().codigo_comp:
+        print(f"El valor del nodo {node.getValue().codigo} ya existe en el árbol.")
       else:
         # se verifica si el valor a insertar es mayor que el actual raiz
-        if node.getValue() > currentRoot.getValue():
+        if node.getValue().codigo_comp > currentRoot.getValue().codigo_comp:
           # se verifica si existe un hijo derecho
           if currentRoot.getRightChild() is None:
             # si no tiene hijo derecho, se asigna el nodo como hijo derecho
@@ -29,7 +29,7 @@ class AVL(Tree):
             # y el nuevo nodo tendrá como padre a la actual raiz
             node.setParent(currentRoot)
             # verificar desbalanceo
-            self.checkBalance(currentRoot)
+            self.checkBalance(currentRoot) #Aqui sucederia el balanceo automatico
           else:
             # ya tiene hijo derecho, entonces se debe procesar la inserción desde el hijo derecho
             # haciendo el llamado recursivo con ese hijo
@@ -71,10 +71,14 @@ class AVL(Tree):
           case "RR":
             self.__rotateLeft(node)
 
-          # FALTA IMPLEMENTAR LOS CASOS LR Y RL
+          case "LR":
+            self.__rotateRight(node.getLeftChild())
+            self.__rotateLeft(node)
+            
+          case "RL":
+            self.__rotateLeft(node.getRightChild())
+            self.__rotateRight(node)
 
-
-      # Método para balancear un caso de desbalanceo LL
       else:
         # se verifica que el nodo actual no sea la raiz, y se invoca el chequeo de balanceo con su padre.
         # cuando es la raiz se finaliza la evaluación
@@ -117,7 +121,7 @@ class AVL(Tree):
 
 
       # método para el giro simple a la izquierda
-      def __rotateLeft(self, topNode):
+    def __rotateLeft(self, topNode):
         # se obtiene el nodo de la mitad
         middleNode = topNode.getRightChild()
 
@@ -151,7 +155,7 @@ class AVL(Tree):
 
 
       # método para identificar el caso de desbalanceo
-      def getBalanceCase(self, node, bf):
+    def getBalanceCase(self, node, bf):
         bfCase = ""
         # caso negativo, va por R
         if bf < -1:
@@ -175,7 +179,7 @@ class AVL(Tree):
 
 
       # Método para calcular el BF de un nodo
-      def getBalanceFactor(self, node):
+    def getBalanceFactor(self, node):
         if node is None:
           return 0
         leftChildHeight = self.getHeightNode(node.getLeftChild())

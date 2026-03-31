@@ -5,7 +5,7 @@ from flight import Flight
 
 # Building the tree by insertion (it means inserting one by one from the list found on JSON file)
 # We receive an empty tree and the data from the JSON so we can start creating the nodes (flights)
-def buildByInsertion(bst, data):
+def buildByInsertion(avl, bst, data):
 
     for flight_data in data["vuelos"]:
 
@@ -20,10 +20,13 @@ def buildByInsertion(bst, data):
             flight_data["alerta"]
         )
 
-        node = Node(flight)
-        bst.insert(node)
-      
+        node_avl = Node(flight)
+        node_bst = Node(flight)
 
+        avl.insert(node_avl)   # AVL (balancea)
+        bst.insert(node_bst)   # BST normal (no balancea)
+
+    
 # When it comes to Topology we have to keep the structure described in JSON File, it means that we already have the descendants
 def buildByTopology(data, parent=None):
 
@@ -55,14 +58,17 @@ def buildByTopology(data, parent=None):
     return node
 
 
-def loadTree(tree, file):
+def loadTree(avl, bst, file):
 
     with open(file, "r", encoding="utf-8") as f:
         data = json.load(f)
-        
+    
+    # Esto debe ser cambiado para que el usuario pueda seleccionar el modo de carga, por ahora se hace con un if pero lo ideal es que el usuario pueda elegir el archivo o el modo de carga   
+    # Esto lo cambiaré al momento del frontend 
+     
     tipo = data.get("tipo")
 
     if tipo == "INSERCION":
-        buildByInsertion(tree, data)
+        buildByInsertion(avl, bst, data)
     elif tipo is None:
-        tree.root = buildByTopology(data)
+        avl.root = buildByTopology(data)

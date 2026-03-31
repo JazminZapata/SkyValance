@@ -1,3 +1,4 @@
+from flask import json
 from node import Node
 
 class Tree:
@@ -31,11 +32,11 @@ class Tree:
     # validar si el valor buscado es igual a la raiz actual
     # print(f"El valor del nodo es: {currentRoot.getValue()}")
     # print(f"Comparación: {currentRoot.getValue() == value}" )
-    if currentRoot.getValue().codigo == value:
+    if currentRoot.getValue().codigo_comp == value:
       # si es así se retorna la actual raiz
       return currentRoot
     # sino se valida si se debe ir por la derecha o por la izquierda
-    elif value > currentRoot.getValue().codigo:
+    elif value > currentRoot.getValue().codigo_comp:
       # si es mayor, se verifica que exista un hijo derecho
       # en caso de no existir se genera
       if currentRoot.getRightChild() is None:
@@ -372,3 +373,36 @@ class Tree:
     elif(node.getLeftChild() is not None and node.getRightChild() is not None):
       nodeCase = 3
     return nodeCase
+  
+  def toJSON(self, node):
+    if node is None:
+        return None
+
+    flight = node.getValue()
+
+    return {
+        "codigo": flight.codigo,
+        "origen": flight.origen,
+        "destino": flight.destino,
+        "horaSalida": flight.horaSalida,
+        "precioBase": flight.precioBase,
+        "precioFinal": node.getFinalPrice(),
+        "pasajeros": flight.pasajeros,
+        "promocion": flight.promocion,
+        "alerta": flight.alerta,
+
+        "altura": self.getHeightNode(node),
+        "factorEquilibrio": self.getBalanceFactor(node),
+
+        "izquierdo": self.toJSON(node.getLeftChild()),
+        "derecho": self.toJSON(node.getRightChild())
+    }
+    
+
+  def exportTree(self, filename="tree.json"):
+    data = self.toJSON(self.root)
+
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+    print("Árbol exportado correctamente")

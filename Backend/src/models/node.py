@@ -60,5 +60,5 @@ class Node:
   def getFinalPrice(self):
     return self.finalPrice
   
-  3
+
     
