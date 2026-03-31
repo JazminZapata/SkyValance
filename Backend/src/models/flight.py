@@ -20,7 +20,7 @@ class Flight:
   
     #  función interna
     def _extraerNumero(self, texto):
-        numeros = ''.join(filter(str.isdigit, texto))
+        numeros = ''.join(filter(str.isdigit, texto)) # filtra los números y los junta en un string
 
         if numeros:
             return int(numeros)

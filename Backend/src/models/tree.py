@@ -6,6 +6,7 @@ class Tree:
   # constructor del árbol que se crea inicialmente con una raiz vacía
   def __init__(self):
     self.root = None
+    self.limite = 3 # Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
 
   # Método para retornar la raiz del árbol
   def getRoot(self):
@@ -283,7 +284,7 @@ class Tree:
 
   # Método que permite eliminar un nodo hoja del árbol
   def __deleteLeafNode(self, node):
-    if node.getValue() < node.getParent().getValue():
+    if node.getValue().codigo_comp < node.getParent().getValue().codigo_comp:
       node.getParent().setLeftChild(None)
     else:
       node.getParent().setRightChild(None)
@@ -295,7 +296,7 @@ class Tree:
     if node.getLeftChild() is not None:
       #si tiene, entonces accedemos al padre de este nodo y preguntamos si el padre es mayor o menor
       #para determinar la posición final del hijo que reemplazará el nodo a eliminar
-      if node.getParent().getValue() < node.getValue():
+      if node.getParent().getValue().codigo_comp < node.getValue().codigo_comp:
         node.getParent().setRightChild(node.getLeftChild())
       else:
         node.getParent().setLeftChild(node.getLeftChild())
@@ -306,7 +307,7 @@ class Tree:
 
     else:
 
-      if node.getParent().getValue() > node.getValue():
+      if node.getParent().getValue().codigo_comp > node.getValue().codigo_comp:
         node.getParent().setLeftChild(node.getRightChild())
       else:
         node.getParent().setLeftChild(node.getRightChild())
@@ -386,7 +387,7 @@ class Tree:
         "destino": flight.destino,
         "horaSalida": flight.horaSalida,
         "precioBase": flight.precioBase,
-        "precioFinal": node.getFinalPrice(),
+        "precioFinal": node.getFinalPrice(self), # "oye nodo, calcula tu precio usando ESTE árbol"
         "pasajeros": flight.pasajeros,
         "promocion": flight.promocion,
         "alerta": flight.alerta,
@@ -409,9 +410,9 @@ class Tree:
 
     print("Árbol exportado correctamente")
     
-  def isCritical(self, node, limite):
+  def isCritical(self, node):  # “El método isCritical recibe un nodo como parámetro porque la condición de criticidad depende de su profundidad dentro del árbol.”
     profundidad = self.getDepth(node)
-    return profundidad > limite
+    return profundidad > self.limite
   
   def getDepth(self, node):
     profundidad = 0
@@ -424,8 +425,64 @@ class Tree:
     return profundidad
   
   def getRentabilidad(self, node):
-    #Falta implementaciòn, se debe calcular a partir del precio final y el número de pasajeros para determinar la rentabilidad del vuelo, lo cual es importante para el punto de Eliminación Inteligente por Impacto Económico
-    return None
+
+    flight = node.getValue()
+
+    #  usar precioFinal YA CALCULADO por Andres
+    precioFinal = node.getFinalPrice(self)
+
+    # ingreso base
+    rentabilidad = flight.pasajeros * precioFinal
+
+    # promoción
+    if flight.promocion:
+        rentabilidad -= 50
+
+    #  penalización (SI YA VIENE EN precioFinal, no se toca)
+
+    return rentabilidad
+  
+  def findMinRentabilidadNode(self):
+
+    # Obtener todos los nodos del árbol en BFS
+    nodos = self.copyBreadthFirstSearch()
+
+    # Variable para guardar el peor nodo encontrado
+    peor = None
+
+    # Recorrer todos los nodos
+    for node in nodos:
+
+        # Calcular métricas del nodo actual
+        r = self.getRentabilidad(node)                 # rentabilidad
+        profundidad = self.getDepth(node)              # profundidad
+        codigo = node.getValue().codigo_comp           # código numérico
+
+        # Si es el primer nodo, lo tomamos como referencia
+        if peor is None:
+            peor = node
+            continue
+
+        # Obtener métricas del peor actual
+        r_peor = self.getRentabilidad(peor)
+        prof_peor = self.getDepth(peor)
+        cod_peor = peor.getValue().codigo_comp
+
+        # menor rentabilidad
+        if r < r_peor:
+            peor = node
+
+        # empate  mayor profundidad
+        elif r == r_peor:
+            if profundidad > prof_peor:
+                peor = node
+
+            # CRITERIO 3: empate total → mayor código
+            elif profundidad == prof_peor:
+                if codigo > cod_peor:
+                    peor = node
+
+    # Retornar el nodo seleccionado
+    return peor
   
   
-  # “El método isCritical recibe un nodo como parámetro porque la condición de criticidad depende de su profundidad dentro del árbol.”

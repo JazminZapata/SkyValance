@@ -34,7 +34,8 @@ def buildByTopology(data, parent=None):
         return None
 
     flight = Flight(
-        str(data["codigo"]),
+        str(data["codigo"]), #!! # Convertimos a string para asegurar que el código sea iterable
+                                 # y poder extraer correctamente la parte numérica para comparación ya que en algunos casos el codigo viene como numero puro o string
         data["origen"],
         data["destino"],
         data["horaSalida"],
