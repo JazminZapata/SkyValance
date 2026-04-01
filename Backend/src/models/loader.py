@@ -21,10 +21,11 @@ def buildByInsertion(avl, bst, data):
         )
 
         node_avl = Node(flight)
-        node_bst = Node(flight)
-
-        avl.insert(node_avl)   # AVL (balancea)
-        bst.insert(node_bst)   # BST normal (no balancea)
+        avl.insert(node_avl)
+        
+        if bst is not None:
+            node_bst = Node(flight)
+            bst.insert(node_bst)
 
     
 # When it comes to Topology we have to keep the structure described in JSON File, it means that we already have the descendants

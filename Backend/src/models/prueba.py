@@ -26,9 +26,9 @@ avl.setLimite(limite_inicial)
 # Load tree
 loadTree(avl, bst, ruta)
 
-print("\n" + "="*30)
+print("\n" + "=" * 30)
 print("ÁRBOLES CARGADOS EXITOSAMENTE")
-print("="*30)
+print("=" * 30)
 
 modo = tipo
 
@@ -71,6 +71,9 @@ for n in avl.copyBreadthFirstSearch():
 nuevo = Flight("SB1010", "Cali", "Bogotá", "10:00", 200, 50, False, False)
 node = Node(nuevo)
 avl.insert(node)
+print(node.getValue().origen) 
+
+print("Nodo insertado")
 
 print("\n--- AVL ACTUALIZADO ---")
 avl.print_tree()
@@ -90,11 +93,12 @@ for n in avl.copyBreadthFirstSearch():
 # Show profitability
 print("\n--- RENTABILIDAD DE NODOS ---")
 for n in avl.copyBreadthFirstSearch():
-    print(n.getValue().codigo, "→", avl.getRentabilidad(n))
+    print(n.getValue().codigo, "→", avl.getProfit(n))
+
 
 # Delete least profitable node
 print("\n--- ELIMINANDO NODO DE MENOR RENTABILIDAD ---")
-avl.deleteMinRentabilidad()
+avl.deleteMinProfit()
 
 print("\n--- AVL DESPUÉS DE ELIMINACIÓN ---")
 avl.print_tree()
