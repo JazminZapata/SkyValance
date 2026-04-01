@@ -1,5 +1,4 @@
-from .node import Node 
-
+from .node import Node
 
 class Tree:
 
@@ -23,7 +22,7 @@ class Tree:
     def search(self, value):
         # validar si existe una raíz en el árbol
         if self.root is None:
-            raise Exception("El árbol no tiene una raíz.")
+            return None
         else:
             return self.__search(self.root, value)
 
@@ -32,11 +31,11 @@ class Tree:
         # validar si el valor buscado es igual a la raiz actual
         # print(f"El valor del nodo es: {currentRoot.getValue()}")
         # print(f"Comparación: {currentRoot.getValue() == value}" )
-        if currentRoot.getValue().codigo == value:
+        if currentRoot.getValue().codigo_comp == value:
             # si es así se retorna la actual raiz
             return currentRoot
         # sino se valida si se debe ir por la derecha o por la izquierda
-        elif value > currentRoot.getValue().codigo:
+        elif value > currentRoot.getValue().codigo_comp:
             # si es mayor, se verifica que exista un hijo derecho
             # en caso de no existir se genera
             if currentRoot.getRightChild() is None:
@@ -248,8 +247,7 @@ class Tree:
             # se incrementa en 1 al retornar al padre para representar la arista que los une
             return maxHeight + 1
 
-        # Cantidad de Nodos (Peso del árbol)
-
+    # Cantidad de Nodos (Peso del árbol)
     def treeWeight(self):
         result = self.breadthFirstSearch()
         return len(result)
@@ -279,7 +277,11 @@ class Tree:
 
     # Método que permite eliminar un nodo hoja del árbol
     def __deleteLeafNode(self, node):
-        if node.getValue() < node.getParent().getValue():
+        # Si el nodo es la raíz (no tiene padre), simplemente vaciar el árbol
+        if node.getParent() is None:
+            self.root = None
+            return
+        if node.getValue().codigo_comp < node.getParent().getValue().codigo_comp:
             node.getParent().setLeftChild(None)
         else:
             node.getParent().setRightChild(None)
@@ -291,7 +293,7 @@ class Tree:
         if node.getLeftChild() is not None:
             # si tiene, entonces accedemos al padre de este nodo y preguntamos si el padre es mayor o menor
             # para determinar la posición final del hijo que reemplazará el nodo a eliminar
-            if node.getParent().getValue() < node.getValue():
+            if node.getParent().getValue().codigo_comp < node.getValue().codigo_comp:
                 node.getParent().setRightChild(node.getLeftChild())
             else:
                 node.getParent().setLeftChild(node.getLeftChild())
@@ -302,10 +304,10 @@ class Tree:
 
         else:
 
-            if node.getParent().getValue() > node.getValue():
+            if node.getParent().getValue().codigo_comp > node.getValue().codigo_comp:
                 node.getParent().setLeftChild(node.getRightChild())
             else:
-                node.getParent().setLeftChild(node.getRightChild())
+                node.getParent().setLeftChild(node.getLeftChild())
 
             node.getRightChild().setParent(node.getParent())
             node.setRightChild(None)
@@ -313,8 +315,7 @@ class Tree:
         # Le quitamos el padre al nodo a eliminar
         node.setParent(None)
 
-        # eliminar nodo con dos hijos usando el predecesor
-
+    # eliminar nodo con dos hijos usando el predecesor
     def __deleteNodeWithTwoChildren(self, node):
 
         # buscar el predecesor
@@ -369,3 +370,16 @@ class Tree:
         elif node.getLeftChild() is not None and node.getRightChild() is not None:
             nodeCase = 3
         return nodeCase
+    
+    #Obtener los nodos de un subárbol a partir de un nodo raíz dada.
+    def get_subtree_nodes(self, node):
+        nodes = []
+
+        def traverse(n):
+            if n is not None:
+                nodes.append(n)
+                traverse(n.getLeftChild())
+                traverse(n.getRightChild())
+
+        traverse(node)
+        return nodes

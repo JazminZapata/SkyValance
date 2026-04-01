@@ -5,6 +5,12 @@ class AVL(Tree):
 
     def __init__(self):
         super().__init__()
+        self.rotations = {
+            "LL" : 0,
+            "RR" : 0,
+            "LR" : 0,
+            "RL" : 0
+        }
 
     # método de insertar para verificar si no hay raíz
     # cuando no hay raíz, se crea el nodo y se asigna como raiz
@@ -18,11 +24,11 @@ class AVL(Tree):
 
     # Método recursivo para insertar un nodo cuando se tiene raiz en el árbol
     def __insert(self, currentRoot, node):
-        if node.getValue() == currentRoot.getValue():
-            print(f"El valor del nodo {node.getValue()} ya existe en el árbol.")
+        if node.getValue().codigo_comp == currentRoot.getValue().codigo_comp:
+            print(f"El valor del nodo {node.getValue().codigo} ya existe en el árbol.")
         else:
             # se verifica si el valor a insertar es mayor que el actual raiz
-            if node.getValue() > currentRoot.getValue():
+            if node.getValue().codigo_comp > currentRoot.getValue().codigo_comp:
                 # se verifica si existe un hijo derecho
                 if currentRoot.getRightChild() is None:
                     # si no tiene hijo derecho, se asigna el nodo como hijo derecho
@@ -30,7 +36,9 @@ class AVL(Tree):
                     # y el nuevo nodo tendrá como padre a la actual raiz
                     node.setParent(currentRoot)
                     # verificar desbalanceo
-                    self.checkBalance(currentRoot)
+                    self.checkBalance(
+                        currentRoot
+                    )  # Aqui sucederia el balanceo automatico
                 else:
                     # ya tiene hijo derecho, entonces se debe procesar la inserción desde el hijo derecho
                     # haciendo el llamado recursivo con ese hijo
@@ -55,9 +63,8 @@ class AVL(Tree):
     # Método para chequear el balanceo de un árbol a partir de un nodo
     def checkBalance(self, node):
         if node is None:
-            raise Exception("EL nodo a balancear no es válido")
-        elif node != self.root:
-            self.__checkBalance(node)
+            return
+        self.__checkBalance(node)
 
     # Método recursivo para validar el balanceo de un árbol
     def __checkBalance(self, node):
@@ -67,49 +74,37 @@ class AVL(Tree):
             bfCase = self.getBalanceCase(node, bf)
             match bfCase:
                 case "LL":
+                    self.rotations["LL"]+=1
                     self.__rotateRight(node)
 
                 case "RR":
+                    self.rotations["RR"]+=1
                     self.__rotateLeft(node)
 
                 case "LR":
-                    # Caso LR: el desbalanceo está en el lado IZQUIERDO del nodo actual,
-                    # pero el peso cuelga hacia la DERECHA del hijo izquierdo.
-                    # Con una sola rotación derecha no se resuelve porque el nodo
-                    # problemático quedaría en la misma posición relativa.
-                    #
-                    # Solución con DOS rotaciones:
-                    # Paso 1 → Rotar a la IZQUIERDA sobre el hijo izquierdo del nodo desbalanceado.
-                    #          Esto "endereza" el codo: convierte el LR en un LL clásico.
-                    # Paso 2 → Rotar a la DERECHA sobre el nodo desbalanceado (ahora ya es LL).
-                    #          Esto termina de subir al nodo central al lugar correcto.
-                    self.__rotateLeft(node.getLeftChild())
-                    self.__rotateRight(node)
+                    self.rotations["LR"]+=1
+                    self.__rotateRight(node.getLeftChild())
+                    self.__rotateLeft(node)
 
                 case "RL":
-                    # Caso RL: el desbalanceo está en el lado DERECHO del nodo actual,
-                    # pero el peso cuelga hacia la IZQUIERDA del hijo derecho.
-                    # Con una sola rotación izquierda no se resuelve porque el nodo
-                    # problemático quedaría en la misma posición relativa.
-                    #
-                    # Solución con DOS rotaciones:
-                    # Paso 1 → Rotar a la DERECHA sobre el hijo derecho del nodo desbalanceado.
-                    #          Esto "endereza" el codo: convierte el RL en un RR clásico.
-                    # Paso 2 → Rotar a la IZQUIERDA sobre el nodo desbalanceado (ahora ya es RR).
-                    #          Esto termina de subir al nodo central al lugar correcto.
-                    self.__rotateRight(node.getRightChild())
-                    self.__rotateLeft(node)
+                    self.rotations["RL"]+=1
+                    self.__rotateLeft(node.getRightChild())
+                    self.__rotateRight(node)
 
         else:
             # se verifica que el nodo actual no sea la raiz, y se invoca el chequeo de balanceo con su padre.
             # cuando es la raiz se finaliza la evaluación
             if node != self.root:
+                # if node.getParent() is not None:
                 self.__checkBalance(node.getParent())
 
     # método para el giro simple a la derecha
     def __rotateRight(self, topNode):
         # se obtiene el nodo de la mitad
         middleNode = topNode.getLeftChild()
+        
+        if middleNode is None:
+            return
 
         # se obtiene el padre del nodo superior, cuando es la raiz será None
         parentTopNode = topNode.getParent()
@@ -139,10 +134,14 @@ class AVL(Tree):
         if rightChildOfMiddleNode is not None:
             rightChildOfMiddleNode.setParent(topNode)
 
-    # método para el giro simple a la izquierda
+        # método para el giro simple a la izquierda
+
     def __rotateLeft(self, topNode):
         # se obtiene el nodo de la mitad
         middleNode = topNode.getRightChild()
+        
+        if middleNode is None:
+            return
 
         # se obtiene el padre del nodo superior, cuando es la raiz será None
         parentTopNode = topNode.getParent()
@@ -205,14 +204,3 @@ class AVL(Tree):
 
     # -----------------------------------------------------------
     # FIN DE MÉTODOS DEL BALANCEO DEL ÁRBOL AVL
-
-    # Método de eliminar que además verifica el balanceo después de la eliminación
-    def delete(self, value):
-        node = self.search(value)
-        if node is None:
-            print(f"El valor {value} no se encuentra en el árbol.")
-        else:
-            parentNode = node.getParent()
-            super().delete(value)
-            if parentNode is not None:
-                self.checkBalance(parentNode)
