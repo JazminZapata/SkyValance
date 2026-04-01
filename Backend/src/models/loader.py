@@ -21,8 +21,7 @@ def buildByInsertion(bst, data):
         )
 
         node = Node(flight)
-        bst.insert(node)
-      
+        bst.insert(node)  
 
 # When it comes to Topology we have to keep the structure described in JSON File, it means that we already have the descendants
 def buildByTopology(data, parent=None):
