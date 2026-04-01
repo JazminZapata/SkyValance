@@ -1,10 +1,10 @@
-from .flight import Flight
-from .node import Node
-from .avl import AVL
-from .bst import BST
-from .loader import loadTree
+from flight import Flight
+from node import Node
+from avl import AVL
+from bst import BST
+from loader import loadTree
 
-# Crear árboles
+# Create trees
 avl = AVL()
 bst = BST()
 
@@ -19,16 +19,14 @@ else:
     print("Opción no válida")
     exit()
 
-# Cargar árbol correctamente
 loadTree(avl, bst, ruta)
 
 print("\n" + "=" * 30)
 print("ÁRBOLES CARGADOS EXITOSAMENTE")
 print("=" * 30)
 
-modo = tipo  # guardamos el modo elegido
+modo = tipo 
 
-# MODO INSERCIÓN
 if modo == 1:
 
     print("\n--- AVL ---")
@@ -42,8 +40,6 @@ if modo == 1:
     print(f"Total de vuelos: {bst.treeWeight()}")
     print(f"Altura: {bst.heightTree()}")
 
-
-#  MODO TOPOLOGÍA
 elif modo == 2:
 
     print("\n--- AVL ---")
@@ -59,7 +55,7 @@ nuevo = Flight("SB1010", "Cali", "Bogotá", "10:00", 200, 50, False, False)
 node = Node(nuevo)
 
 avl.insert(node)
-print(node.getValue().origen)  # Imprime el código del vuelo insertado
+print(node.getValue().origen) 
 
 print("Nodo insertado")
 
@@ -67,20 +63,16 @@ print("\n--- AVL ACTUALIZADO ---")
 avl.print_tree()
 print(f"Balance raíz: {avl.getBalanceFactor(avl.root)}")
 
-
-# MOSTRAR RENTABILIDADES
 print("\n--- RENTABILIDAD DE NODOS ---")
 for n in avl.copyBreadthFirstSearch():
-    print(n.getValue().codigo, "→", avl.getRentabilidad(n))
+    print(n.getValue().codigo, "→", avl.getProfit(n))
 
-#  ELIMINAR MENOR RENTABILIDAD
+
 print("\n--- ELIMINANDO NODO DE MENOR RENTABILIDAD ---")
-avl.deleteMinRentabilidad()
+avl.deleteMinProfit()
 
-#  MOSTRAR ÁRBOL FINAL
 print("\n--- AVL DESPUÉS DE ELIMINACIÓN ---")
 avl.print_tree()
-
 
 opcion = input("¿Deseas exportar el árbol? (s/n): ")
 

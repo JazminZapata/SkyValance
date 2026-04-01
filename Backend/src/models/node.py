@@ -1,7 +1,4 @@
-# clase que permite instanciar nuevos nodos con sus atributos
-from sqlalchemy import null
-
-
+# clase que permite instanciar nuevos nodos con sus atributo
 class Node:
 
     # constructor para el nodo con hijos, padre y valor
@@ -61,9 +58,9 @@ class Node:
 
     def getFinalPrice(self, tree=None):
     
-        # si ya tiene precio calculado  usarlo
+        # If the final price is already calculated, return it
         if self.finalPrice is not None:
             return self.finalPrice
-
-        # si no usar precio base
+          
+        # If the final price is not calculated, we calculate it based on the base price and the promotion
         return self.getValue().precioBase

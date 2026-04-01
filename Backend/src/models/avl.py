@@ -1,4 +1,4 @@
-from .tree import Tree
+from tree import Tree
 
 
 class AVL(Tree):
@@ -196,17 +196,14 @@ class AVL(Tree):
         leftChildHeight = self.getHeightNode(node.getLeftChild())
         rightChildHeight = self.getHeightNode(node.getRightChild())
         return leftChildHeight - rightChildHeight
+      
+      
+    # deleteMinProfit MUST be implemented in AVL because it knows how to rebalance.
+    # Item 8.
 
-    # -----------------------------------------------------------
-    # FIN DE MÉTODOS DEL BALANCEO DEL ÁRBOL AVL
-
-    # deleteMinRentabilidad sí o sí debe estar en AVL porque es quien sabe rebalancear.
-
-    # En avl.py, dentro de la clase AVL
-
-    def deleteMinRentabilidad(self):
+    def deleteMinProfit(self):
         # Find the node with the lowest profitability
-        node = self.findMinRentabilidadNode()
+        node = self.findMinProfit()
 
         if node is None:
             print("No hay nodos para eliminar")
@@ -214,7 +211,7 @@ class AVL(Tree):
 
         codigo = node.getValue().codigo_comp
         print(f"Eliminando nodo: {node.getValue().codigo}")
-        print(f"Rentabilidad: {self.getRentabilidad(node)}")
+        print(f"Rentabilidad: {self.getProfit(node)}")
 
         # Save the parent BEFORE deleting, to rebalance from there upward
         parentNode = node.getParent()
@@ -227,4 +224,6 @@ class AVL(Tree):
             self.checkBalance(parentNode)
         elif self.root is not None:
             # Deleted node was root, rebalance from new root
-            self.checkBalance(self.root)
+            self.checkBalance(self.root)    
+    
+    # End Item 8.

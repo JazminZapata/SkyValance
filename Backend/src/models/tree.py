@@ -1,4 +1,4 @@
-from .node import Node
+from node import Node
 import json
 
 
@@ -392,18 +392,14 @@ class Tree:
             "destino": flight.destino,
             "horaSalida": flight.horaSalida,
             "precioBase": flight.precioBase,
-            "precioFinal": node.getFinalPrice(
-                self
-            ),  # "oye nodo, calcula tu precio usando ESTE árbol"
+            "precioFinal": node.getFinalPrice(self),  # "hey node, calculate your final price using THIS tree"
             "pasajeros": flight.pasajeros,
             "promocion": flight.promocion,
             "alerta": flight.alerta,
             "altura": self.getHeightNode(node),
             "factorEquilibrio": self.getBalanceFactor(node),
             "prioridad": flight.getPriority(),
-            "rentabilidad": self.getRentabilidad(
-                node
-            ),  # Importante para el punto de Eliminacion Inteligente por Impacto Economiico
+            "rentabilidad": self.getProfit(node), 
             "izquierdo": self.toJSON(node.getLeftChild()),
             "derecho": self.toJSON(node.getRightChild()),
         }
@@ -431,64 +427,67 @@ class Tree:
             actual = actual.getParent()
 
         return profundidad
+      
+    # Start Item 8.
 
-    def getRentabilidad(self, node):
+    def getProfit(self, node):
 
         flight = node.getValue()
 
-        #  usar precioFinal YA CALCULADO por Andres
-        precioFinal = node.getFinalPrice(self)
+        #  We use the method finalPrice made by Andres to get the final price of the flight, this method already considers the promotion and the penalty if it applies, so we can be sure that we are using the correct price for the profitability calculation 
+        finalPrice = node.getFinalPrice(self)
 
-        # ingreso base
-        rentabilidad = flight.pasajeros * precioFinal
+        # Base income
+        profitability = flight.pasajeros * finalPrice
 
-        # promoción
+        # Discount
         if flight.promocion:
-            rentabilidad -= 50
+            profitability -= 50
 
-        #  penalización (SI YA VIENE EN precioFinal, no se toca)
+        return profitability
 
-        return rentabilidad
+    def findMinProfit(self):
 
-    def findMinRentabilidadNode(self):
+        # We get all the nodes of the tree using BFS to evaluate them one by one and find the worst according to the criteria defined in the item 8.
+        # We use BFS because we need to evaluate all the nodes and not just a path, and BFS allows us to do that level by level
+        nodes = self.copyBreadthFirstSearch()
 
-        # Obtener todos los nodos del árbol en BFS
-        nodos = self.copyBreadthFirstSearch()
+        # Variable to find the worst node 
+        worst = None
 
-        # Variable para guardar el peor nodo encontrado
-        peor = None
+        # We evaluate each node and compare it with the worst found so far 
+        for node in nodes:
 
-        # Recorrer todos los nodos
-        for node in nodos:
+            # Calculate metrics for the current node
+            p = self.getProfit(node)  # profitability
+            depth = self.getDepth(node)  # depth
+            codigo = node.getValue().codigo_comp  # numeric code
 
-            # Calcular métricas del nodo actual
-            r = self.getRentabilidad(node)  # rentabilidad
-            profundidad = self.getDepth(node)  # profundidad
-            codigo = node.getValue().codigo_comp  # código numérico
-
-            # Si es el primer nodo, lo tomamos como referencia
-            if peor is None:
-                peor = node
+            # If it's the first node being evaluated, we set it as the worst by default
+            if worst is None:
+                worst = node
                 continue
 
-            # Obtener métricas del peor actual
-            r_peor = self.getRentabilidad(peor)
-            prof_peor = self.getDepth(peor)
-            cod_peor = peor.getValue().codigo_comp
+            # Calculate metrics for the worst node found so far
+            p_worst = self.getProfit(worst)
+            depth_worst = self.getDepth(worst)
+            cod_worst = worst.getValue().codigo_comp
 
-            # menor rentabilidad
-            if r < r_peor:
-                peor = node
+            # Lowest profibitality
+            if p < p_worst:
+                worst = node
 
-            # empate  mayor profundidad
-            elif r == r_peor:
-                if profundidad > prof_peor:
-                    peor = node
+            # Deeper in the tree if profitability is the same
+            elif p == p_worst:
+                if depth > depth_worst:
+                    worst = node
 
-                # CRITERIO 3: empate total → mayor código
-                elif profundidad == prof_peor:
-                    if codigo > cod_peor:
-                        peor = node
+                # If profitability and depth are the same, we choose the one with the higher code
+                elif depth == depth_worst:
+                    if codigo > cod_worst:
+                        worst = node
 
-        # Retornar el nodo seleccionado
-        return peor
+        # Return selected node
+        return worst
+
+    # End Item 8.
