@@ -11,6 +11,7 @@ class FlightService:
         self.tree = AVL()
         self.bst = None
         self.history = ActionHistory()
+        self.mass_cancellations = 0
         
         
     #LOAD FROM JSON
@@ -95,6 +96,8 @@ class FlightService:
             # Eliminar desde hojas hacia arriba
             for n in reversed(subtree_nodes):
                 self.tree.delete(n.getValue().codigo_comp)
+                
+            self.mass_cancellations += 1
 
             print(f"Vuelo {codigo} y su subárbol fueron cancelados correctamente")
         else:

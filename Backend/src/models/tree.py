@@ -492,3 +492,27 @@ class Tree:
 
         # Retornar el nodo seleccionado
         return peor
+    
+    
+    def countLeaves(self):
+        if self.root is None:
+            return 0
+        return self.__countLeaves(self.root)
+    
+    def __countLeaves(self, node):
+        # caso base: si es hoja
+        if node.getLeftChild() is None and node.getRightChild() is None:
+            return 1
+
+        leaves = 0
+
+        # recorrer izquierda
+        if node.getLeftChild() is not None:
+            leaves += self.__countLeaves(node.getLeftChild())
+
+
+        # recorrer derecha
+        if node.getRightChild() is not None:
+            leaves += self.__countLeaves(node.getRightChild())
+
+        return leaves

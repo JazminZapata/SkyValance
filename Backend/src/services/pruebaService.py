@@ -120,3 +120,5 @@ print("\n" + "=" * 40)
 print("TODOS LOS TESTS COMPLETADOS")
 print("=" * 40)
  
+print(f"Hojas: {service.tree.countLeaves()}")
+print(f"Cancelaciones masivas: {service.mass_cancellations}")
