@@ -54,3 +54,38 @@ elif modo == 2:
 
     print("\n--- BST ---")
     print("No aplica en modo topología")
+    
+nuevo = Flight("SB1010", "Cali", "Bogotá", "10:00", 200, 50, False, False)
+node = Node(nuevo)
+
+avl.insert(node)
+print(node.getValue().origen)  # Imprime el código del vuelo insertado
+
+print("Nodo insertado")
+
+print("\n--- AVL ACTUALIZADO ---")
+avl.print_tree()
+print(f"Balance raíz: {avl.getBalanceFactor(avl.root)}")
+
+
+# MOSTRAR RENTABILIDADES
+print("\n--- RENTABILIDAD DE NODOS ---")
+for n in avl.copyBreadthFirstSearch():
+    print(n.getValue().codigo, "→", avl.getRentabilidad(n))
+
+#  ELIMINAR MENOR RENTABILIDAD
+print("\n--- ELIMINANDO NODO DE MENOR RENTABILIDAD ---")
+avl.deleteMinRentabilidad()
+
+#  MOSTRAR ÁRBOL FINAL
+print("\n--- AVL DESPUÉS DE ELIMINACIÓN ---")
+avl.print_tree()
+
+
+opcion = input("¿Deseas exportar el árbol? (s/n): ")
+
+if opcion.lower() == "s":
+    nombre_archivo = input("Ingresa el nombre del archivo ")
+    avl.exportTree(nombre_archivo + ".json")
+    
+

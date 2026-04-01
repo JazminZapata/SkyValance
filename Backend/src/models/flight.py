@@ -39,7 +39,7 @@ class Flight:
     #  función interna (estatica para poderla usar en flightService) para extraer el número del código del vuelo, asumiendo que el código tiene un formato como "FL1234" y queremos extraer el número 1234 para comparaciones numéricas
     @staticmethod
     def extraerNumero(texto):
-        numeros = "".join(filter(str.isdigit, texto))
+        numeros = ''.join(filter(str.isdigit, texto)) # filtra los números y los junta en un string
 
         if numeros:
             return int(numeros)

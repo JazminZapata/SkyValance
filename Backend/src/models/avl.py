@@ -5,12 +5,7 @@ class AVL(Tree):
 
     def __init__(self):
         super().__init__()
-        self.rotations = {
-            "LL" : 0,
-            "RR" : 0,
-            "LR" : 0,
-            "RL" : 0
-        }
+        self.rotations = {"LL": 0, "RR": 0, "LR": 0, "RL": 0}
 
     # método de insertar para verificar si no hay raíz
     # cuando no hay raíz, se crea el nodo y se asigna como raiz
@@ -74,20 +69,20 @@ class AVL(Tree):
             bfCase = self.getBalanceCase(node, bf)
             match bfCase:
                 case "LL":
-                    self.rotations["LL"]+=1
+                    self.rotations["LL"] += 1
                     self.__rotateRight(node)
 
                 case "RR":
-                    self.rotations["RR"]+=1
+                    self.rotations["RR"] += 1
                     self.__rotateLeft(node)
 
                 case "LR":
-                    self.rotations["LR"]+=1
+                    self.rotations["LR"] += 1
                     self.__rotateRight(node.getLeftChild())
                     self.__rotateLeft(node)
 
                 case "RL":
-                    self.rotations["RL"]+=1
+                    self.rotations["RL"] += 1
                     self.__rotateLeft(node.getRightChild())
                     self.__rotateRight(node)
 
@@ -102,7 +97,7 @@ class AVL(Tree):
     def __rotateRight(self, topNode):
         # se obtiene el nodo de la mitad
         middleNode = topNode.getLeftChild()
-        
+
         if middleNode is None:
             return
 
@@ -139,7 +134,7 @@ class AVL(Tree):
     def __rotateLeft(self, topNode):
         # se obtiene el nodo de la mitad
         middleNode = topNode.getRightChild()
-        
+
         if middleNode is None:
             return
 
@@ -204,3 +199,32 @@ class AVL(Tree):
 
     # -----------------------------------------------------------
     # FIN DE MÉTODOS DEL BALANCEO DEL ÁRBOL AVL
+
+    # deleteMinRentabilidad sí o sí debe estar en AVL porque es quien sabe rebalancear.
+
+    # En avl.py, dentro de la clase AVL
+
+    def deleteMinRentabilidad(self):
+        # Find the node with the lowest profitability
+        node = self.findMinRentabilidadNode()
+
+        if node is None:
+            print("No hay nodos para eliminar")
+            return
+
+        codigo = node.getValue().codigo_comp
+        print(f"Eliminando nodo: {node.getValue().codigo}")
+        print(f"Rentabilidad: {self.getRentabilidad(node)}")
+
+        # Save the parent BEFORE deleting, to rebalance from there upward
+        parentNode = node.getParent()
+
+        # Delete using the BST logic inherited from Tree
+        self.delete(codigo)
+
+        # Rebalance upward from where the node was removed
+        if parentNode is not None:
+            self.checkBalance(parentNode)
+        elif self.root is not None:
+            # Deleted node was root, rebalance from new root
+            self.checkBalance(self.root)

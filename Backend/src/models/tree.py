@@ -1,10 +1,12 @@
 from .node import Node
+import json
+
 
 class Tree:
-
     # constructor del árbol que se crea inicialmente con una raiz vacía
     def __init__(self):
         self.root = None
+        self.limite = 3  # Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
 
     # Método para retornar la raiz del árbol
     def getRoot(self):
@@ -289,31 +291,25 @@ class Tree:
 
     # Método que permite eliminar un nodo con un hijo del árbol
     def __deleteNodeWithOneChild(self, node):
-        # preguntamos si el nodo a eliminar tiene hijo izquierdo
         if node.getLeftChild() is not None:
-            # si tiene, entonces accedemos al padre de este nodo y preguntamos si el padre es mayor o menor
-            # para determinar la posición final del hijo que reemplazará el nodo a eliminar
-            if node.getParent().getValue().codigo_comp < node.getValue().codigo_comp:
-                node.getParent().setRightChild(node.getLeftChild())
-            else:
-                node.getParent().setLeftChild(node.getLeftChild())
-
-            # Seteamos como nuevo padre del hijo izquierdo el que era su "abuelo" o padre del nodo a eliminar
-            node.getLeftChild().setParent(node.getParent())
-            node.setLeftChild(None)
-
+            child = node.getLeftChild()
         else:
+            child = node.getRightChild()
 
-            if node.getParent().getValue().codigo_comp > node.getValue().codigo_comp:
-                node.getParent().setLeftChild(node.getRightChild())
+        if node.getParent() is not None:
+            if node.getParent().getLeftChild() == node:
+                node.getParent().setLeftChild(child)
             else:
-                node.getParent().setLeftChild(node.getLeftChild())
+                node.getParent().setRightChild(child)
+        else:
+            self.root = child
 
-            node.getRightChild().setParent(node.getParent())
-            node.setRightChild(None)
+        if child is not None:
+            child.setParent(node.getParent())
 
-        # Le quitamos el padre al nodo a eliminar
         node.setParent(None)
+        node.setLeftChild(None)
+        node.setRightChild(None)
 
     # eliminar nodo con dos hijos usando el predecesor
     def __deleteNodeWithTwoChildren(self, node):
@@ -359,19 +355,7 @@ class Tree:
         node.setRightChild(None)
         node.setParent(None)
 
-    # Método para identificar cuál es el caso de eliminación
-    # 1. Nodo hoja
-    # 2. Nodo con un hijo
-    # 3. Nodo con 2 hijos
-    def IdentifyDeletionCase(self, node):
-        nodeCase = 2
-        if node.getLeftChild() is None and node.getRightChild() is None:
-            nodeCase = 1
-        elif node.getLeftChild() is not None and node.getRightChild() is not None:
-            nodeCase = 3
-        return nodeCase
-    
-    #Obtener los nodos de un subárbol a partir de un nodo raíz dada.
+    # Obtener los nodos de un subárbol a partir de un nodo raíz dada.
     def get_subtree_nodes(self, node):
         nodes = []
 
@@ -383,3 +367,128 @@ class Tree:
 
         traverse(node)
         return nodes
+
+    # Método para identificar cuál es el caso de eliminación
+    # 1. Nodo hoja
+    # 2. Nodo con un hijo
+    # 3. Nodo con 2 hijos
+    def IdentifyDeletionCase(self, node):
+        nodeCase = 2
+        if node.getLeftChild() is None and node.getRightChild() is None:
+            nodeCase = 1
+        elif node.getLeftChild() is not None and node.getRightChild() is not None:
+            nodeCase = 3
+        return nodeCase
+
+    def toJSON(self, node):
+        if node is None:
+            return None
+
+        flight = node.getValue()
+
+        return {
+            "codigo": flight.codigo,
+            "origen": flight.origen,
+            "destino": flight.destino,
+            "horaSalida": flight.horaSalida,
+            "precioBase": flight.precioBase,
+            "precioFinal": node.getFinalPrice(
+                self
+            ),  # "oye nodo, calcula tu precio usando ESTE árbol"
+            "pasajeros": flight.pasajeros,
+            "promocion": flight.promocion,
+            "alerta": flight.alerta,
+            "altura": self.getHeightNode(node),
+            "factorEquilibrio": self.getBalanceFactor(node),
+            "prioridad": flight.getPriority(),
+            "rentabilidad": self.getRentabilidad(
+                node
+            ),  # Importante para el punto de Eliminacion Inteligente por Impacto Economiico
+            "izquierdo": self.toJSON(node.getLeftChild()),
+            "derecho": self.toJSON(node.getRightChild()),
+        }
+
+    def exportTree(self, filename="tree.json"):
+        data = self.toJSON(self.root)
+
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+        print("Árbol exportado correctamente")
+
+    def isCritical(
+        self, node
+    ):  # “El método isCritical recibe un nodo como parámetro porque la condición de criticidad depende de su profundidad dentro del árbol.”
+        profundidad = self.getDepth(node)
+        return profundidad > self.limite
+
+    def getDepth(self, node):
+        profundidad = 0
+        actual = node
+
+        while actual.getParent() is not None:
+            profundidad += 1
+            actual = actual.getParent()
+
+        return profundidad
+
+    def getRentabilidad(self, node):
+
+        flight = node.getValue()
+
+        #  usar precioFinal YA CALCULADO por Andres
+        precioFinal = node.getFinalPrice(self)
+
+        # ingreso base
+        rentabilidad = flight.pasajeros * precioFinal
+
+        # promoción
+        if flight.promocion:
+            rentabilidad -= 50
+
+        #  penalización (SI YA VIENE EN precioFinal, no se toca)
+
+        return rentabilidad
+
+    def findMinRentabilidadNode(self):
+
+        # Obtener todos los nodos del árbol en BFS
+        nodos = self.copyBreadthFirstSearch()
+
+        # Variable para guardar el peor nodo encontrado
+        peor = None
+
+        # Recorrer todos los nodos
+        for node in nodos:
+
+            # Calcular métricas del nodo actual
+            r = self.getRentabilidad(node)  # rentabilidad
+            profundidad = self.getDepth(node)  # profundidad
+            codigo = node.getValue().codigo_comp  # código numérico
+
+            # Si es el primer nodo, lo tomamos como referencia
+            if peor is None:
+                peor = node
+                continue
+
+            # Obtener métricas del peor actual
+            r_peor = self.getRentabilidad(peor)
+            prof_peor = self.getDepth(peor)
+            cod_peor = peor.getValue().codigo_comp
+
+            # menor rentabilidad
+            if r < r_peor:
+                peor = node
+
+            # empate  mayor profundidad
+            elif r == r_peor:
+                if profundidad > prof_peor:
+                    peor = node
+
+                # CRITERIO 3: empate total → mayor código
+                elif profundidad == prof_peor:
+                    if codigo > cod_peor:
+                        peor = node
+
+        # Retornar el nodo seleccionado
+        return peor
