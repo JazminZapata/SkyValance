@@ -60,4 +60,10 @@ class Node:
         self.finalPrice = finalPrice
 
     def getFinalPrice(self, tree=None):
-        return self.finalPrice
+    
+        # si ya tiene precio calculado  usarlo
+        if self.finalPrice is not None:
+            return self.finalPrice
+
+        # si no usar precio base
+        return self.getValue().precioBase

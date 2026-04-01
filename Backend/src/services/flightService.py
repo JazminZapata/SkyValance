@@ -19,9 +19,7 @@ class FlightService:
         loadTree(self.tree, self.bst, filepath)
         print(f"JSON cargado correctamente desde {filepath}")
 
-    # -------------------------
     # CREATE
-    # -------------------------
     def create_flight(self, flight):
         # Guardar estado antes del cambio (para undo)
         self.history.save(self.tree)
@@ -31,9 +29,7 @@ class FlightService:
 
         print(f"Vuelo {flight.codigo} creado correctamente")
 
-    # -------------------------
     # DELETE
-    # -------------------------
     def delete_flight(self, codigo):
         numero = Flight.extraerNumero(codigo)
 
@@ -49,9 +45,7 @@ class FlightService:
         else:
             print("Vuelo no encontrado")
 
-    # -------------------------
     # UPDATE
-    # -------------------------
     def update_flight(self, codigo, new_data):
         numero = Flight.extraerNumero(codigo)
 
@@ -84,9 +78,8 @@ class FlightService:
         else:
             print("Vuelo no encontrado")
 
-    # -------------------------
+
     # CANCEL (subárbol completo)
-    # -------------------------
     def cancel_flight(self, codigo):
         numero = Flight.extraerNumero(codigo)
 
@@ -107,15 +100,12 @@ class FlightService:
         else:
             print("Vuelo no encontrado")
 
-    # -------------------------
     # UNDO (Ctrl + Z)
-    # -------------------------
     def undo(self):
         self.history.undo(self.tree)
 
-    # -------------------------
+
     # FIND (Buscar vuelo por código)
-    # -------------------------
     def find_flight(self, codigo):
         numero = Flight.extraerNumero(codigo)
 

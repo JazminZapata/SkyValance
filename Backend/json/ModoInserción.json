@@ -19,4 +19,3 @@
     {"codigo":"SB750","origen":"Riohacha","destino":"Bogota","horaSalida":"13:30","precioBase":480,"pasajeros":115,"prioridad":3,"promocion":false,"alerta":false}
   ]
 }
-//Al json le hace falta que se actualice con insersion o cancelacion o cuakquier tipo de operacion.
