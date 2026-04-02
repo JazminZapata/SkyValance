@@ -3,6 +3,7 @@ from ..models.node import Node
 from ..models.flight import Flight
 from ..models.avl import AVL
 from ..models.actionHistory import ActionHistory
+from ..models.versionManager import VersionManager
 
 
 class FlightService:
@@ -11,6 +12,7 @@ class FlightService:
         self.tree = AVL()
         self.bst = None
         self.history = ActionHistory()
+        self.versions = VersionManager()
         
         
     #LOAD FROM JSON
@@ -104,7 +106,6 @@ class FlightService:
     def undo(self):
         self.history.undo(self.tree)
 
-
     # FIND (Buscar vuelo por código)
     def find_flight(self, codigo):
         numero = Flight.extraerNumero(codigo)
@@ -115,3 +116,23 @@ class FlightService:
             return node.getValue()
         else:
             return None
+
+    # Item 2.
+
+    # Saves the current tree state under a user-defined name
+    def save_version(self, name: str):
+        self.versions.save(name, self.tree)
+
+    # Restores the tree to a previously saved named version
+    def restore_version(self, name: str):
+        self.versions.restore(name, self.tree)
+
+    # Returns all saved versions with their name, timestamp and depth limit
+    def list_versions(self) -> list:
+        return self.versions.list_versions()
+
+    # Deletes a named version from disk and the index
+    def delete_version(self, name: str):
+        self.versions.delete_version(name)
+
+    # End Item 2.
