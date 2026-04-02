@@ -1,6 +1,5 @@
-from node import Node
+#from models.node import Node
 import json
-
 
 class Tree:
     # constructor del árbol que se crea inicialmente con una raiz vacía
