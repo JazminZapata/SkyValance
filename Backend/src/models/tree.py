@@ -1,15 +1,45 @@
-#from models.node import Node
 import json
 
 class Tree:
-    # constructor del árbol que se crea inicialmente con una raiz vacía
-    def __init__(self):
+  # constructor del árbol que se crea inicialmente con una raiz vacía
+  def __init__(self):
         self.root = None
         self.limite = 3  # Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
 
-    # Método para retornar la raiz del árbol
-    def getRoot(self):
-        return self.root
+  # Item 6 :
+  # Method for defining the critical depth limit
+  def setLimite(self, nuevo_limite: int):
+    # Updates the critical depth limit and triggers a full price recalculation
+    # Can be called before loading JSON or at any point during execution
+    self.limite = nuevo_limite
+    self.recalculatePrices()
+
+  def recalculatePrices(self):
+      # Traverses all nodes and updates isCritical flag and finalPrice
+      # Must be called after setLimite(), insertions, deletions or rebalancing
+      # since rotations change node depths
+      if self.root is None:
+          return
+
+      for node in self.copyBreadthFirstSearch():
+          is_critical = self.isCritical(node)
+          node.setIsCritical(is_critical)
+          if is_critical:
+              node.setFinalPrice(node.getValue().precioBase * 1.25)
+          else:
+              node.setFinalPrice(node.getValue().precioBase)  
+  # Final Item 6.
+
+  # Método para retornar la raiz del árbol
+  def getRoot(self):
+    return self.root
+    
+  def insert(self, node):
+    # verificar si no hay raiz para asignar el nuevo como raiz
+    if self.root is None:
+      self.root = node
+    else:
+      self.__insert(self.root, node)
 
     def insert(self, node):
         # verificar si no hay raiz para asignar el nuevo como raiz
@@ -306,9 +336,17 @@ class Tree:
         if child is not None:
             child.setParent(node.getParent())
 
-        node.setParent(None)
-        node.setLeftChild(None)
+        if node.getParent().getValue().codigo_comp > node.getValue().codigo_comp:
+          node.getParent().setLeftChild(node.getRightChild())
+        else:
+          node.getParent().setRightChild(node.getRightChild())
+
+        node.getRightChild().setParent(node.getParent())
         node.setRightChild(None)
+
+    # Le quitamos el padre al nodo a eliminar
+    node.setParent(None)
+    
 
     # eliminar nodo con dos hijos usando el predecesor
     def __deleteNodeWithTwoChildren(self, node):

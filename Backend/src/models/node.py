@@ -12,6 +12,7 @@ class Node:
         self.balanceFactor = None
         self.height = None
         self.finalPrice = None
+        self.isCritical = False  # NodoCritico
 
     # asignación de un hijo derecho
     def setRightChild(self, node):
@@ -43,24 +44,36 @@ class Node:
 
     def setBalanceFactor(self, balanceFactor):
         self.balanceFactor = balanceFactor
-
+    
     def getBalanceFactor(self):
         return self.balanceFactor
-
+    
     def setHeight(self, height):
         self.height = height
-
+        
     def getHeight(self):
         return self.height
-
+    
     def setFinalPrice(self, finalPrice):
         self.finalPrice = finalPrice
-
+        
     def getFinalPrice(self, tree=None):
-    
-        # If the final price is already calculated, return it
+        # If tree is provided, compute dynamically based on criticality 25% surcharge
+        if tree is not None:
+            if tree.isCritical(self):
+                return self.getValue().precioBase * 1.25
+            return self.getValue().precioBase
+
+        # or use cached finalPrice or precioBase
         if self.finalPrice is not None:
             return self.finalPrice
-          
-        # If the final price is not calculated, we calculate it based on the base price and the promotion
         return self.getValue().precioBase
+
+    def setIsCritical(self, value: bool):
+        # Sets whether this node is flagged as critical due to exceeding depth limit
+        self.isCritical = value
+
+    def getIsCritical(self):
+        # Returns True if this node exceeds the tree's depth limit
+        return self.isCritical
+        

@@ -122,11 +122,13 @@ class AVL(Tree):
                 parentTopNode.setRightChild(middleNode)
             # sin importar si era hijo izq o derecho, se asigna ese padre del superior como padre del nodo de la mitad
             middleNode.setParent(parentTopNode)
-
         # reasignar el hijo derecho del nodo de la mitad al nodo superior que ya bajó como hijo derecho del nodo de la mitad
         topNode.setLeftChild(rightChildOfMiddleNode)
         if rightChildOfMiddleNode is not None:
             rightChildOfMiddleNode.setParent(topNode)
+        
+        # After rotation, depths change: recalculate critical flags and prices
+        self.recalculatePrices()
 
         # método para el giro simple a la izquierda
 
@@ -164,6 +166,9 @@ class AVL(Tree):
         topNode.setRightChild(leftChildOfMiddleNode)
         if leftChildOfMiddleNode is not None:
             leftChildOfMiddleNode.setParent(topNode)
+        
+        # After rotation, depths change: recalculate critical flags and prices
+        self.recalculatePrices()
 
     # método para identificar el caso de desbalanceo
     def getBalanceCase(self, node, bf):
@@ -197,6 +202,14 @@ class AVL(Tree):
         return leftChildHeight - rightChildHeight
       
       
+    # deleteMinRentabilidad sí o sí debe estar en AVL porque es quien sabe rebalancear.  
+      
+    # Necessary to recalculate prices in case the critical node, after removal
+    def delete(self, value):
+      # Call parent delete logic
+      super().delete(value)
+      # After deletion, depths may change — recalculate critical flags and prices
+      self.recalculatePrices()
     # deleteMinProfit MUST be implemented in AVL because it knows how to rebalance.
     # Item 8.
 

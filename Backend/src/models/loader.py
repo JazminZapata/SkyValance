@@ -35,8 +35,8 @@ def buildByTopology(data, parent=None):
         return None
 
     flight = Flight(
-        str(data["codigo"]), #!! # Convertimos a string para asegurar que el código sea iterable
-                                 # y poder extraer correctamente la parte numérica para comparación ya que en algunos casos el codigo viene como numero puro o string
+        str(data["codigo"]), # # Convertimos a string para asegurar que el código sea iterable
+                            # y poder extraer correctamente la parte numérica para comparación ya que en algunos casos el codigo viene como numero puro o string
         data["origen"],
         data["destino"],
         data["horaSalida"],
@@ -67,7 +67,7 @@ def loadTree(avl, bst, file):
     
     # Esto debe ser cambiado para que el usuario pueda seleccionar el modo de carga, por ahora se hace con un if pero lo ideal es que el usuario pueda elegir el archivo o el modo de carga   
     # Esto lo cambiaré al momento del frontend 
-     
+
     tipo = data.get("tipo")
 
     if tipo == "INSERCION":
