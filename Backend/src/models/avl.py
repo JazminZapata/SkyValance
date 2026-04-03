@@ -67,33 +67,27 @@ class AVL(Tree):
     # Método recursivo para validar el balanceo de un árbol
     def __checkBalance(self, node):
         bf = self.getBalanceFactor(node)
+        print(f"Chequeando {node.getValue().codigo} | BF: {bf}")
         if bf > 1 or bf < -1:
-            # se identifica el caso de desbalanceo (LL, RR, RL, LR)
             bfCase = self.getBalanceCase(node, bf)
+            print(f"  → Desbalance detectado! Caso: {bfCase}")
             match bfCase:
                 case "LL":
                     self.rotations["LL"] += 1
                     self.__rotateRight(node)
-
                 case "RR":
                     self.rotations["RR"] += 1
                     self.__rotateLeft(node)
-
                 case "LR":
                     self.rotations["LR"] += 1
-                    self.__rotateRight(node.getLeftChild())
-                    self.__rotateLeft(node)
-
+                    self.__rotateLeft(node.getLeftChild())
+                    self.__rotateRight(node)
                 case "RL":
                     self.rotations["RL"] += 1
-                    self.__rotateLeft(node.getRightChild())
-                    self.__rotateRight(node)
-
+                    self.__rotateRight(node.getRightChild())
+                    self.__rotateLeft(node)
         else:
-            # se verifica que el nodo actual no sea la raiz, y se invoca el chequeo de balanceo con su padre.
-            # cuando es la raiz se finaliza la evaluación
             if node != self.root:
-                # if node.getParent() is not None:
                 self.__checkBalance(node.getParent())
 
     # método para el giro simple a la derecha
@@ -177,23 +171,17 @@ class AVL(Tree):
     # método para identificar el caso de desbalanceo
     def getBalanceCase(self, node, bf):
         bfCase = ""
-        # caso negativo, va por R
         if bf < -1:
             bfChild = self.getBalanceFactor(node.getRightChild())
-            # caso negativo, va por R
-            if bfChild < 0:
+            if bfChild <= 0:
                 bfCase = "RR"
             else:
-                # caso positivo va por L
                 bfCase = "RL"
-        # caso positivo L
         else:
             bfChild = self.getBalanceFactor(node.getLeftChild())
-            # caso positivo, va por L
-            if bfChild > 0:
+            if bfChild >= 0:
                 bfCase = "LL"
             else:
-                # caso negativo va por R
                 bfCase = "LR"
         return bfCase
 
@@ -209,8 +197,15 @@ class AVL(Tree):
 
     # Necessary to recalculate prices in case the critical node, after removal
     def delete(self, value):
+        node = self.search(value)
+        parent = node.getParent() if node else None
+    
         # Call parent delete logic
         super().delete(value)
+        
+        if self.auto_balance and parent is not None:
+            self.checkBalance(parent)
+        
         # After deletion, depths may change — recalculate critical flags and prices
         self.recalculatePrices()
 

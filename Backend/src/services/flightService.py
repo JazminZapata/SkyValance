@@ -20,7 +20,7 @@ class FlightService:
     #LOAD FROM JSON
     def load_from_json(self, filepath):
         self.filepath = filepath
-        self.history.save(self.tree)
+        self.history.save(self.tree, self.bst)  # Guardar estado antes de cargar nuevo árbol
 
         import json
         with open(filepath, "r", encoding="utf-8") as f:
@@ -65,7 +65,7 @@ class FlightService:
     # CREATE
     def create_flight(self, flight):
         # Guardar estado antes del cambio (para undo)
-        self.history.save(self.tree)
+        self.history.save(self.tree, self.bst)
 
         node = Node(flight)
         self.tree.insert(node)
@@ -84,7 +84,7 @@ class FlightService:
 
         if node:
             # Guardar estado antes del cambio
-            self.history.save(self.tree)
+            self.history.save(self.tree, self.bst)
 
             self.tree.delete(numero)
             
@@ -103,7 +103,7 @@ class FlightService:
 
         if node:
             # Guardar estado antes del cambio
-            self.history.save(self.tree)
+            self.history.save(self.tree , self.bst)
 
             # Obtener datos actuales
             old_data = node.getValue()
@@ -137,7 +137,7 @@ class FlightService:
 
         if node:
             # Guardar estado antes del cambio
-            self.history.save(self.tree)
+            self.history.save(self.tree, self.bst)
 
             # Obtener todos los nodos del subárbol
             subtree_nodes = self.tree.get_subtree_nodes(node)
@@ -156,7 +156,7 @@ class FlightService:
 
     # UNDO (Ctrl + Z)
     def undo(self):
-        self.history.undo(self.tree)
+        self.history.undo(self.tree, self.bst)
 
 
     # FIND (Buscar vuelo por código)

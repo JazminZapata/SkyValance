@@ -85,6 +85,9 @@ if "cancel_flight_node" not in st.session_state:
 if "stress_mode" not in st.session_state:
     st.session_state.stress_mode = False
 
+if "rebalance_cost" not in st.session_state:
+        st.session_state.rebalance_cost = None
+
 # Referencias rápidas al service y sus árboles
 service = st.session_state.service
 avl = service.tree
@@ -444,8 +447,14 @@ with col1:
     if st.button("Cancel Flight", use_container_width=True):
         cancel_modal()
         
-    if "rebalance_cost" not in st.session_state:
-        st.session_state.rebalance_cost = None
+    if st.button("↩️ Undo", use_container_width=True):
+        if service.history.stack:
+            service.undo()
+            st.rerun()
+        else:
+            st.toast("No hay acciones para deshacer", icon="⚠️")
+        
+    
 
     st.divider()
 

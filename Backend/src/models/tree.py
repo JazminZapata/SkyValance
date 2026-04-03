@@ -331,16 +331,9 @@ class Tree:
         if child is not None:
             child.setParent(node.getParent())
 
-        if node.getParent().getValue().codigo_comp > node.getValue().codigo_comp:
-            node.getParent().setLeftChild(node.getRightChild())
-        else:
-            node.getParent().setRightChild(node.getRightChild())
-
-        node.getRightChild().setParent(node.getParent())
-        node.setRightChild(None)
-
-    # Le quitamos el padre al nodo a eliminar
         node.setParent(None)
+        node.setLeftChild(None)
+        node.setRightChild(None)
     
 
     # eliminar nodo con dos hijos usando el predecesor
