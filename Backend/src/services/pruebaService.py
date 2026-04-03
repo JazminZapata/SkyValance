@@ -1,8 +1,8 @@
 # -----------------------------------------------------------------------
 # PRUEBAS
 # -----------------------------------------------------------------------
-from Backend.src.services.flightService import FlightService
-from Backend.src.models.flight import Flight
+from services.flightService import FlightService
+from models.flight import Flight
 
 service = FlightService()
 

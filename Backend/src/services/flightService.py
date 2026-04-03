@@ -4,6 +4,7 @@ from models.flight import Flight
 from models.avl import AVL
 from models.actionHistory import ActionHistory
 from models.bst import BST
+import json
 
 
 class FlightService:
@@ -68,6 +69,10 @@ class FlightService:
 
         node = Node(flight)
         self.tree.insert(node)
+        
+        #Para actualizar el bst 
+        if self.bst:
+            self.bst.insert(Node(flight))
 
         print(f"Vuelo {flight.codigo} creado correctamente")
 
@@ -82,6 +87,9 @@ class FlightService:
             self.history.save(self.tree)
 
             self.tree.delete(numero)
+            
+            if self.bst:
+                self.bst.delete(numero)
 
             print(f"Vuelo {codigo} eliminado correctamente")
         else:
@@ -137,6 +145,8 @@ class FlightService:
             # Eliminar desde hojas hacia arriba
             for n in reversed(subtree_nodes):
                 self.tree.delete(n.getValue().codigo_comp)
+                if self.bst:
+                    self.bst.delete(n.getValue().codigo_comp)
                 
             self.mass_cancellations += 1
 

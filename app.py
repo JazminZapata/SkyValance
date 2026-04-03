@@ -75,6 +75,15 @@ if "show_insert" not in st.session_state:
     
 if "edit_flight_node" not in st.session_state:
     st.session_state.edit_flight_node = None
+    
+if "delete_flight_node" not in st.session_state:
+    st.session_state.delete_flight_node = None
+    
+if "cancel_flight_node" not in st.session_state:
+    st.session_state.cancel_flight_node = None
+    
+if "stress_mode" not in st.session_state:
+    st.session_state.stress_mode = False
 
 # Referencias rápidas al service y sus árboles
 service = st.session_state.service
@@ -85,12 +94,6 @@ bst = service.bst if service.bst else BST()
 # ===============================
 # FUNCIONES AUXILIARES
 # ===============================
-def count_leaves(node):
-    if not node:
-        return 0
-    if not node.getLeftChild() and not node.getRightChild():
-        return 1
-    return count_leaves(node.getLeftChild()) + count_leaves(node.getRightChild())
 
 
 def build_graph(node, G=None, pos=None, x=0.0, y=0.0, layer=1):
@@ -187,14 +190,6 @@ def animar_recorrido(nodes, container):
         draw_tree(avl)
 
 
-# ===============================
-# MÉTRICAS (calculadas una sola vez)
-# ===============================
-height = avl.heightTree() if avl.root else 0
-leaves = count_leaves(avl.root)
-bst_height = bst.heightTree() if bst.root else 0
-bst_leaves = count_leaves(bst.root)
-
 
 # ===============================
 # HEADER
@@ -273,6 +268,34 @@ with col1:
             st.warning("Upload JSON")
 
     st.divider()
+
+    # --- Modo Estrés ---
+    st.markdown("### Stress Mode")
+
+    if st.session_state.stress_mode:
+        st.warning("⚠️ Stress mode active — no auto balance")
+        if st.button("Disable Stress Mode", use_container_width=True):
+            avl.enable_auto_balance()
+            st.session_state.stress_mode = False
+            st.rerun()
+        if st.button("Rebalance Now", use_container_width=True):
+            cost = avl.rebalance_all()
+            avl.enable_auto_balance()
+            st.session_state.stress_mode = False
+            st.session_state.rebalance_cost = cost
+            st.rerun()
+    else:
+        if st.button("Enable Stress Mode", use_container_width=True):
+            avl.enable_stress_mode()
+            st.session_state.stress_mode = True
+            st.rerun()
+
+    if st.session_state.get("rebalance_cost"):
+        cost = st.session_state.rebalance_cost
+        st.success("Rebalance done!")
+        st.caption(f"LL: {cost['LL']} | RR: {cost['RR']} | LR: {cost['LR']} | RL: {cost['RL']}")
+        
+    st.divider()
     
     #Modal para insertar nuevo vuelo
     @st.dialog("Insert New Flight")
@@ -344,7 +367,69 @@ with col1:
                 if st.button("Cancel Edit"):
                     st.session_state.edit_flight_node = None
                     st.rerun()
+                    
+    @st.dialog("Delete Flight")
+    def delete_modal():
+        codigo_buscar = st.text_input("Enter Flight Code to delete", key="delete_search")
+        
+        if st.button("Search"):
+            val = Flight.extractNum(codigo_buscar)
+            nodo = avl.search(val)
+            if nodo:
+                st.session_state.delete_flight_node = nodo
+            else:
+                st.error("Flight not found")
+        
+        if st.session_state.get("delete_flight_node") is not None:
+            nodo = st.session_state.delete_flight_node
+            f = nodo.getValue()
+            
+            st.warning(f"Are you sure you want to delete flight **{f.codigo}**?")
+            st.write(f"Route: {f.origen} → {f.destino}")
+            st.write(f"Departure: {f.horaSalida}")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("Confirm Delete"):
+                    service.delete_flight(f.codigo)
+                    st.session_state.delete_flight_node = None
+                    st.rerun()
+            with col_b:
+                if st.button("Cancel Delete"):
+                    st.session_state.delete_flight_node = None
+                    st.rerun()
                 
+                
+    @st.dialog("Cancel Flight")
+    def cancel_modal():
+        codigo_buscar = st.text_input("Enter Flight Code to cancel", key="cancel_search")
+        
+        if st.button("Search"):
+            val = Flight.extractNum(codigo_buscar)
+            nodo = avl.search(val)
+            if nodo:
+                st.session_state.cancel_flight_node = nodo
+            else:
+                st.error("Flight not found")
+        
+        if st.session_state.get("cancel_flight_node") is not None:
+            nodo = st.session_state.cancel_flight_node
+            f = nodo.getValue()
+            
+            st.error(f"This will cancel flight **{f.codigo}** and its entire subtree!")
+            st.write(f"Route: {f.origen} → {f.destino}")
+            st.write(f"Departure: {f.horaSalida}")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("Confirm Cancel"):
+                    service.cancel_flight(f.codigo)
+                    st.session_state.cancel_flight_node = None
+                    st.rerun()
+            with col_b:
+                if st.button("Dismiss"):
+                    st.session_state.cancel_flight_node = None
+                    st.rerun()
                 
     # --- Operaciones CRUD ---
     if st.button("Insert Flight", use_container_width=True): 
@@ -352,8 +437,15 @@ with col1:
 
     if st.button("Edit Flight", use_container_width=True): 
         edit_modal()
-    st.button("Delete Node", use_container_width=True)
-    st.button("Cancel Flight", use_container_width=True)
+        
+    if st.button("Delete Node", use_container_width=True):
+        delete_modal()
+        
+    if st.button("Cancel Flight", use_container_width=True):
+        cancel_modal()
+        
+    if "rebalance_cost" not in st.session_state:
+        st.session_state.rebalance_cost = None
 
     st.divider()
 
@@ -419,6 +511,18 @@ with col2:
         plt.close(fig_bst)
 
 
+
+# ===============================
+# MÉTRICAS (llamadas desde avl, tree y flightService)
+# ===============================
+    metrics = service.get_metrics() if avl.root else {}
+    height = metrics.get("altura", 0)
+    leaves = metrics.get("hojas", 0)
+    rotations = metrics.get("rotaciones", {"LL": 0, "RR": 0, "LR": 0, "RL": 0})
+    mass_cancellations = metrics.get("cancelaciones_masivas", 0)
+    bst_height = bst.heightTree() if bst.root else 0
+    bst_leaves = bst.countLeaves() if bst.root else 0
+
 # ===============================
 # COLUMNA DERECHA — Métricas y búsqueda
 # ===============================
@@ -429,8 +533,11 @@ with col3:
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Height", height)
     m2.metric("Leaves", leaves)
-    m3.metric("Rotations", "N/A")
-    m4.metric("Cancel", st.session_state.mass_cancel)
+    m3.metric("Rotations", sum(rotations.values()))
+    m4.metric("Cancel", mass_cancellations)
+    
+    if avl.root:
+        st.caption(f"LL: {rotations['LL']} | RR: {rotations['RR']} | LR: {rotations['LR']} | RL: {rotations['RL']}")
 
     st.divider()
 
