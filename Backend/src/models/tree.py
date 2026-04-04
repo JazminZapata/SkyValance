@@ -414,6 +414,9 @@ class Tree:
             return None
 
         flight = node.getValue()
+        
+        print("precio base del nodo:", flight.precioBase)
+        print("FinalPrice guardado:", node.getFinalPrice())
 
         return {
             "codigo": flight.codigo,
@@ -430,7 +433,7 @@ class Tree:
             "prioridad": flight.getPriority(),
             "rentabilidad": self.getProfit(node), 
             "izquierdo": self.toJSON(node.getLeftChild()),
-            "derecho": self.toJSON(node.getRightChild()),
+            "derecho": self.toJSON(node.getRightChild())
         }
 
     def exportTree(self, filename="tree.json"):
