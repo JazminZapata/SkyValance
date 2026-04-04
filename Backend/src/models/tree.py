@@ -1,51 +1,55 @@
 import json
 
 class Tree:
-  # constructor del árbol que se crea inicialmente con una raiz vacía
-  def __init__(self):
-        self.root = None
-        self.limite = 3  # Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
+    # constructor del árbol que se crea inicialmente con una raiz vacía
+    def __init__(self):
+            self.root = None
+            self.limite = 3  # Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
 
-  # Item 6 :
-  # Method for defining the critical depth limit
-  def setLimite(self, nuevo_limite: int):
-    # Updates the critical depth limit and triggers a full price recalculation
-    # Can be called before loading JSON or at any point during execution
-    self.limite = nuevo_limite
-    self.recalculatePrices()
+    # Item 6 :
+    # Method for defining the critical depth limit
+    def setLimite(self, nuevo_limite: int):
+        # Updates the critical depth limit and triggers a full price recalculation
+        # Can be called before loading JSON or at any point during execution
+        self.limite = nuevo_limite
+        self.recalculatePrices()
 
-  def recalculatePrices(self):
-      # Traverses all nodes and updates isCritical flag and finalPrice
-      # Must be called after setLimite(), insertions, deletions or rebalancing
-      # since rotations change node depths
-      if self.root is None:
-          return
+    def recalculatePrices(self):
+        # Traverses all nodes and updates isCritical flag and finalPrice
+        # Must be called after setLimite(), insertions, deletions or rebalancing
+        # since rotations change node depths
+        if self.root is None:
+            return
 
-      for node in self.copyBreadthFirstSearch():
-          is_critical = self.isCritical(node)
-          node.setIsCritical(is_critical)
-          if is_critical:
-              node.setFinalPrice(node.getValue().precioBase * 1.25)
-          else:
-              node.setFinalPrice(node.getValue().precioBase)  
-  # Final Item 6.
+        for node in self.copyBreadthFirstSearch():
+            is_critical = self.isCritical(node)
+            node.setIsCritical(is_critical)
+            if is_critical:
+                node.setFinalPrice(node.getValue().precioBase * 1.25)
+            else:
+                node.setFinalPrice(node.getValue().precioBase)  
+    # Final Item 6.
 
-  # Método para retornar la raiz del árbol
-  def getRoot(self):
-    return self.root
-    
-  def insert(self, node):
-    # verificar si no hay raiz para asignar el nuevo como raiz
-    if self.root is None:
-      self.root = node
-    else:
-      self.__insert(self.root, node)
+    # Método para retornar la raiz del árbol
+    def getRoot(self):
+        return self.root
+
+    # Método para retornar la raiz del árbol
+    def getRoot(self):
+        return self.root
+        
+    def insert(self, node):
+        # verificar si no hay raiz para asignar el nuevo como raiz
+        if self.root is None:
+            self.root = node
+        else:
+            self.__insert(self.root, node)
 
    
 
     # Método que permita realizar la búsqueda de un nodo mediante su valor
     # debe seguir la lógica de las reglas de un BST
-  def search(self, value):
+    def search(self, value):
         # validar si existe una raíz en el árbol
         if self.root is None:
             return None
@@ -53,7 +57,7 @@ class Tree:
             return self.__search(self.root, value)
 
     # función recursiva para atender la búsqueda
-  def __search(self, currentRoot, value):
+    def __search(self, currentRoot, value):
         # validar si el valor buscado es igual a la raiz actual
         # print(f"El valor del nodo es: {currentRoot.getValue()}")
         # print(f"Comparación: {currentRoot.getValue() == value}" )
@@ -79,14 +83,14 @@ class Tree:
                 return self.__search(currentRoot.getLeftChild(), value)
 
     # Método para dibujar el árbol en forma de árbol
-  def print_tree(self):
+    def print_tree(self):
         if self.root is None:
             print("El árbol está vacío.")
         else:
             self.__print_tree(self.root, "", True)
 
     # Methodo para imprimir el árbol BST
-  def __print_tree(self, node=None, prefix="", is_left=True):
+    def __print_tree(self, node=None, prefix="", is_left=True):
         if node is not None:
             # Print right subtree
             if node.getRightChild():
@@ -103,7 +107,7 @@ class Tree:
                 self.__print_tree(node.getLeftChild(), new_prefix, True)
 
     # Método para recorrido en anchura
-  def breadthFirstSearch(self):
+    def breadthFirstSearch(self):
         # verificar si el árbol está vacío
         if self.root is None:
             print("El árbol está vacío.")
@@ -127,7 +131,7 @@ class Tree:
                     queue.append(currentNode.getRightChild())
             return result
 
-  def copyBreadthFirstSearch(self):
+    def copyBreadthFirstSearch(self):
         # verificar si el árbol está vacío
         if self.root is None:
             print("El árbol está vacío.")
@@ -152,7 +156,7 @@ class Tree:
             return result
 
     # Método para realizar el recorrido en profundidad tipo  Pre-Order
-  def preOrderTraversal(self):
+    def preOrderTraversal(self):
         # validar si el árbol está vacío y mostrar mensaje
         if self.root is None:
             print("El árbol está vacío.")
@@ -164,7 +168,7 @@ class Tree:
             return result
 
     # Método recursivo para el recorrido Pre-Order
-  def __preOrderTraversal(self, currentRoot, result):
+    def __preOrderTraversal(self, currentRoot, result):
         # Se imprime (agrega a la cola) la raiz actual
         result.append(currentRoot)
 
@@ -177,7 +181,7 @@ class Tree:
             self.__preOrderTraversal(currentRoot.getRightChild(), result)
 
     # Método para realizar el recorrido en profundidad tipo  In-Order
-  def inOrderTraversal(self):
+    def inOrderTraversal(self):
         # validar si el árbol está vacío y mostrar mensaje
         if self.root is None:
             print("El árbol está vacío.")
@@ -188,8 +192,8 @@ class Tree:
             self.__inOrderTraversal(self.root, result)
             return result
 
-    # Método recursivo para el recorrido Pre-Order
-  def __inOrderTraversal(self, currentRoot, result):
+    # Método recursivo para el recorrido In-Order
+    def __inOrderTraversal(self, currentRoot, result):
         # se verifica si tiene hijo izquierdo para seguir el recorrido por él
         if currentRoot.getLeftChild() is not None:
             self.__inOrderTraversal(currentRoot.getLeftChild(), result)
@@ -202,7 +206,7 @@ class Tree:
             self.__inOrderTraversal(currentRoot.getRightChild(), result)
 
     # Método para realizar el recorrido en profundidad tipo  Pos-Order
-  def posOrderTraversal(self):
+    def posOrderTraversal(self):
         # validar si el árbol está vacío y mostrar mensaje
         if self.root is None:
             print("El árbol está vacío.")
@@ -213,8 +217,8 @@ class Tree:
             self.__posOrderTraversal(self.root, result)
             return result
 
-    # Método recursivo para el recorrido Pre-Order
-  def __posOrderTraversal(self, currentRoot, result):
+    # Método recursivo para el recorrido Pos-Order
+    def __posOrderTraversal(self, currentRoot, result):
         # se verifica si tiene hijo izquierdo para seguir el recorrido por él
         if currentRoot.getLeftChild() is not None:
             self.__posOrderTraversal(currentRoot.getLeftChild(), result)
@@ -227,7 +231,7 @@ class Tree:
         result.append(currentRoot)
 
     # Cantidad de aristas que hay desde la raíz hasta la hoja más lejana  (Altura del árbol)
-  def heightTree(self):
+    def heightTree(self):
         # Obtenemos los nodos para buscar el último
         result = self.copyBreadthFirstSearch()
 
@@ -252,14 +256,14 @@ class Tree:
         return len(parents) - 1
 
     # Método que permite calcular la altura de un nodo
-  def getHeightNode(self, node):
+    def getHeightNode(self, node):
         if node is None:
             return -1
         else:
             return self.__getHeightNode(node)
 
     # Cálculo recursivo de la altura de un nodo
-  def __getHeightNode(self, node):
+    def __getHeightNode(self, node):
         # si es None se debe retornar -1 para equilibrar el +1 de su padre
         if node is None:
             return -1
@@ -274,12 +278,12 @@ class Tree:
             return maxHeight + 1
 
     # Cantidad de Nodos (Peso del árbol)
-  def treeWeight(self):
+    def treeWeight(self):
         result = self.breadthFirstSearch()
         return len(result)
 
     # Método para eliminar
-  def delete(self, value):
+    def delete(self, value):
         if self.root is None:
             print("El árbol está vacío.")
         else:
@@ -290,7 +294,7 @@ class Tree:
                 self.__deleteNode(node)
 
     # Método que evalúa cada uno de los casos de eliminar y procede según sea
-  def __deleteNode(self, node):
+    def __deleteNode(self, node):
         # identificar el caso de eliminación
         nodeCase = self.IdentifyDeletionCase(node)
         match nodeCase:
@@ -302,7 +306,7 @@ class Tree:
                 self.__deleteNodeWithTwoChildren(node)
 
     # Método que permite eliminar un nodo hoja del árbol
-  def __deleteLeafNode(self, node):
+    def __deleteLeafNode(self, node):
         # Si el nodo es la raíz (no tiene padre), simplemente vaciar el árbol
         if node.getParent() is None:
             self.root = None
@@ -313,8 +317,8 @@ class Tree:
             node.getParent().setRightChild(None)
         node.setParent(None)
 
-    # Método que permite eliminar un nodo con un hijo del árbol
-  def __deleteNodeWithOneChild(self, node):
+# Método que permite eliminar un nodo con un hijo del árbol
+    def __deleteNodeWithOneChild(self, node):
         if node.getLeftChild() is not None:
             child = node.getLeftChild()
         else:
@@ -331,20 +335,14 @@ class Tree:
         if child is not None:
             child.setParent(node.getParent())
 
-        if node.getParent().getValue().codigo_comp > node.getValue().codigo_comp:
-          node.getParent().setLeftChild(node.getRightChild())
-        else:
-          node.getParent().setRightChild(node.getRightChild())
-
-        node.getRightChild().setParent(node.getParent())
-        node.setRightChild(None)
-
-    # Le quitamos el padre al nodo a eliminar
+        # Desconectar el nodo eliminado del árbol
         node.setParent(None)
+        node.setLeftChild(None)
+        node.setRightChild(None)
     
 
     # eliminar nodo con dos hijos usando el predecesor
-  def __deleteNodeWithTwoChildren(self, node):
+    def __deleteNodeWithTwoChildren(self, node):
 
         # buscar el predecesor
         predecesor = node.getLeftChild()
@@ -388,7 +386,7 @@ class Tree:
         node.setParent(None)
 
     # Obtener los nodos de un subárbol a partir de un nodo raíz dada.
-  def get_subtree_nodes(self, node):
+    def get_subtree_nodes(self, node):
         nodes = []
 
         def traverse(n):
@@ -404,14 +402,14 @@ class Tree:
     # 1. Nodo hoja
     # 2. Nodo con un hijo
     # 3. Nodo con 2 hijos
-  def IdentifyDeletionCase(self, node):
+    def IdentifyDeletionCase(self, node):
         nodeCase = 2
         if node.getLeftChild() is None and node.getRightChild() is None:
             nodeCase = 1
         elif node.getLeftChild() is not None and node.getRightChild() is not None:
             nodeCase = 3
         return nodeCase
-  def toJSON(self, node):
+    def toJSON(self, node):
         if node is None:
             return None
 
@@ -435,7 +433,7 @@ class Tree:
             "derecho": self.toJSON(node.getRightChild()),
         }
 
-  def exportTree(self, filename="tree.json"):
+    def exportTree(self, filename="tree.json"):
         data = self.toJSON(self.root)
 
         with open(filename, "w", encoding="utf-8") as f:
@@ -443,13 +441,13 @@ class Tree:
 
         print("Árbol exportado correctamente")
 
-  def isCritical(
+    def isCritical(
         self, node
     ):  # “El método isCritical recibe un nodo como parámetro porque la condición de criticidad depende de su profundidad dentro del árbol.”
         profundidad = self.getDepth(node)
         return profundidad > self.limite
 
-  def getDepth(self, node):
+    def getDepth(self, node):
         profundidad = 0
         actual = node
 
@@ -458,10 +456,10 @@ class Tree:
             actual = actual.getParent()
 
         return profundidad
-      
+
     # Start Item 8.
 
-  def getProfit(self, node):
+    def getProfit(self, node):
 
         flight = node.getValue()
 
@@ -477,7 +475,7 @@ class Tree:
 
         return profitability
 
-  def findMinProfit(self):
+    def findMinProfit(self):
 
         # We get all the nodes of the tree using BFS to evaluate them one by one and find the worst according to the criteria defined in the item 8.
         # We use BFS because we need to evaluate all the nodes and not just a path, and BFS allows us to do that level by level
@@ -521,4 +519,27 @@ class Tree:
         # Return selected node
         return worst
 
-    # End Item 8.
+    # End Item 8.    
+    
+    def countLeaves(self):
+        if self.root is None:
+            return 0
+        return self.__countLeaves(self.root)
+    
+    def __countLeaves(self, node):
+        # caso base: si es hoja
+        if node.getLeftChild() is None and node.getRightChild() is None:
+            return 1
+
+        leaves = 0
+
+        # recorrer izquierda
+        if node.getLeftChild() is not None:
+            leaves += self.__countLeaves(node.getLeftChild())
+
+
+        # recorrer derecha
+        if node.getRightChild() is not None:
+            leaves += self.__countLeaves(node.getRightChild())
+
+        return leaves

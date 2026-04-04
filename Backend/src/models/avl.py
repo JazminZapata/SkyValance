@@ -1,11 +1,13 @@
 from models.tree import Tree
 from models.node import Node
 
+
 class AVL(Tree):
 
     def __init__(self):
         super().__init__()
         self.rotations = {"LL": 0, "RR": 0, "LR": 0, "RL": 0}
+        self.auto_balance = True  #  Interruptor para balancear automaticamente
 
     # método de insertar para verificar si no hay raíz
     # cuando no hay raíz, se crea el nodo y se asigna como raiz
@@ -30,8 +32,11 @@ class AVL(Tree):
                     currentRoot.setRightChild(node)
                     # y el nuevo nodo tendrá como padre a la actual raiz
                     node.setParent(currentRoot)
-                    # verificar desbalanceo
-                    self.checkBalance(currentRoot)  # Aqui sucederia el balanceo automatico
+                    # verificar si se desbalancea segun el modo estres
+                    if self.auto_balance:
+                        self.checkBalance(
+                            currentRoot
+                        )  # Aqui sucederia el balanceo automatico
                 else:
                     # ya tiene hijo derecho, entonces se debe procesar la inserción desde el hijo derecho
                     # haciendo el llamado recursivo con ese hijo
@@ -44,8 +49,9 @@ class AVL(Tree):
                     currentRoot.setLeftChild(node)
                     # y al nuevo nodo se le asigna como padre a la actual raiz
                     node.setParent(currentRoot)
-                    # verificar desbalanceo
-                    self.checkBalance(currentRoot)
+                    # verificar desbalanceo segun el modo estres
+                    if self.auto_balance:
+                        self.checkBalance(currentRoot)
                 else:
                     # si tiene hijo izquierdo, entonces se llama recursivamente por el hijo izquierdo con el nodo a insertar.
                     self.__insert(currentRoot.getLeftChild(), node)
@@ -63,34 +69,28 @@ class AVL(Tree):
     def __checkBalance(self, node):
         bf = self.getBalanceFactor(node)
         print(f"checkBalance en {node.getValue().codigo} bf={bf}")
+        print(f"Chequeando {node.getValue().codigo} | BF: {bf}")
         if bf > 1 or bf < -1:
-            # se identifica el caso de desbalanceo (LL, RR, RL, LR)
             bfCase = self.getBalanceCase(node, bf)
             print(f"  → caso: {bfCase}")
+            print(f"  → Desbalance detectado! Caso: {bfCase}")
             match bfCase:
                 case "LL":
                     self.rotations["LL"] += 1
                     self.__rotateRight(node)
-
                 case "RR":
                     self.rotations["RR"] += 1
                     self.__rotateLeft(node)
-
                 case "LR":
                     self.rotations["LR"] += 1
                     self.__rotateLeft(node.getLeftChild())
                     self.__rotateRight(node)
-
                 case "RL":
                     self.rotations["RL"] += 1
                     self.__rotateRight(node.getRightChild())
                     self.__rotateLeft(node)
-
         else:
-            # se verifica que el nodo actual no sea la raiz, y se invoca el chequeo de balanceo con su padre.
-            # cuando es la raiz se finaliza la evaluación
             if node != self.root:
-                # if node.getParent() is not None:
                 self.__checkBalance(node.getParent())
 
     # método para el giro simple a la derecha
@@ -127,7 +127,7 @@ class AVL(Tree):
         topNode.setLeftChild(rightChildOfMiddleNode)
         if rightChildOfMiddleNode is not None:
             rightChildOfMiddleNode.setParent(topNode)
-        
+
         # After rotation, depths change: recalculate critical flags and prices
         self.recalculatePrices()
 
@@ -167,14 +167,13 @@ class AVL(Tree):
         topNode.setRightChild(leftChildOfMiddleNode)
         if leftChildOfMiddleNode is not None:
             leftChildOfMiddleNode.setParent(topNode)
-        
+
         # After rotation, depths change: recalculate critical flags and prices
         self.recalculatePrices()
 
     # método para identificar el caso de desbalanceo
     def getBalanceCase(self, node, bf):
         bfCase = ""
-        # caso negativo, va por R
         if bf < -1:
             bfChild = self.getBalanceFactor(node.getRightChild())
             print(f"  → bfChild en caso R: {bfChild}")
@@ -182,16 +181,13 @@ class AVL(Tree):
             if bfChild <= 0:
                 bfCase = "RR"
             else:
-                # caso positivo va por L
                 bfCase = "RL"
-        # caso positivo L
         else:
             bfChild = self.getBalanceFactor(node.getLeftChild())
             # caso positivo, va por L
             if bfChild >= 0:
                 bfCase = "LL"
             else:
-                # caso negativo va por R
                 bfCase = "LR"
         return bfCase
 
@@ -201,32 +197,140 @@ class AVL(Tree):
             return 0
         leftChildHeight = self.getHeightNode(node.getLeftChild())
         rightChildHeight = self.getHeightNode(node.getRightChild())
-        return leftChildHeight - rightChildHeight  
-      
+        return leftChildHeight - rightChildHeight
+
+    # deleteMinRentabilidad sí o sí debe estar en AVL porque es quien sabe rebalancear.
+
     # Necessary to recalculate prices in case the critical node, after removal
     def delete(self, value):
-      # Call parent delete logic
-      super().delete(value)
-      # After deletion, depths may change — recalculate critical flags and prices
-      self.recalculatePrices()
+        node = self.search(value)
+        parent = node.getParent() if node else None
+    
+        # Call parent delete logic
+        super().delete(value)
+        
+        if self.auto_balance and parent is not None:
+            self.checkBalance(parent)
+        
+        # After deletion, depths may change — recalculate critical flags and prices
+        self.recalculatePrices()
+
     # deleteMinProfit MUST be implemented in AVL because it knows how to rebalance.
     # Item 8.
 
     def deleteMinProfit(self):
-      node = self.findMinProfit()
+        node = self.findMinProfit()
 
-      if node is None:
-        return
+        if node is None:
+          return
 
-      parent = node.getParent()
-      print(f"Nodo a eliminar: {node.getValue().codigo}")
-      print(f"Padre guardado: {parent.getValue().codigo if parent else 'None'}")
+        parent = node.getParent()
+        print(f"Nodo a eliminar: {node.getValue().codigo}")
+        print(f"Padre guardado: {parent.getValue().codigo if parent else 'None'}")
 
-      self.delete(node.getValue().codigo_comp)
+        self.delete(node.getValue().codigo_comp)
 
-      print(f"BF del padre después de delete: {self.getBalanceFactor(parent)}")
-      print(f"Padre sigue en árbol: {self.search(parent.getValue().codigo_comp) is not None}")
+        print(f"BF del padre después de delete: {self.getBalanceFactor(parent)}")
+        print(f"Padre sigue en árbol: {self.search(parent.getValue().codigo_comp) is not None}")
 
-      self.checkBalance(parent)
-      self.recalculatePrices()
+        self.checkBalance(parent)
+        self.recalculatePrices()
     # End Item 8.
+
+    # No balancea automaticamente, hace parte de la prueba estres
+    def enable_stress_mode(self):
+        self.auto_balance = False
+
+    # Si se balancea automaticamente, hace parte de la prueba estres
+    def enable_auto_balance(self):
+        self.auto_balance = True
+
+    def rebalance_all(self):
+        if self.root is None:
+            return {}
+
+        initial_rotations = self.rotations.copy()
+
+        # 1. Obtener nodos en orden (BST ordenado)
+        nodes = self.inOrderTraversal()
+
+        # 2. Reconstruir árbol balanceado
+        self.root = self.__build_balanced(nodes, 0, len(nodes) - 1)
+
+        # 3. Recalcular precios
+        self.recalculatePrices()
+
+        # 4. Calcular costo (simulado)
+        cost = {}
+        for key in self.rotations:
+            cost[key] = self.rotations[key] - initial_rotations[key]
+
+        return cost
+    
+    def __build_balanced(self, nodes, start, end):
+        if start > end:
+            return None
+
+        mid = (start + end) // 2
+        root = nodes[mid]
+
+        # Construir hijos
+        left = self.__build_balanced(nodes, start, mid - 1)
+        right = self.__build_balanced(nodes, mid + 1, end)
+
+        root.setLeftChild(left)
+        root.setRightChild(right)
+
+        if left:
+            left.setParent(root)
+        if right:
+            right.setParent(root)
+
+        root.setParent(None)
+
+        return root
+    
+    # Item 7 — AVL Audit System
+    def auditAVL(self):
+        nodes = self.copyBreadthFirstSearch()
+        report = []
+        inconsistent = []
+
+        for node in nodes:
+            codigo = node.getValue().codigo
+            bf = self.getBalanceFactor(node)
+            real_height = self.getHeightNode(node)
+            depth = self.getDepth(node)
+            critical = node.getIsCritical()
+
+            bf_ok = bf in (-1, 0, 1)
+            height_ok = node.getHeight() is None or node.getHeight() == real_height
+            is_ok = bf_ok and height_ok
+
+            entry = {
+                "codigo": codigo,
+                "depth": depth,
+                "balance_factor": bf,
+                "height": real_height,
+                "critical": critical,
+                "bf_ok": bf_ok,
+                "height_ok": height_ok,
+                "ok": is_ok
+            }
+            report.append(entry)
+            if not is_ok:
+                inconsistent.append(codigo)
+
+        total = len(nodes)
+        valid = total - len(inconsistent)
+        score = round((valid / total) * 100) if total > 0 else 0
+
+        return {
+            "total": total,
+            "valid": valid,
+            "inconsistent_count": len(inconsistent),
+            "inconsistent_nodes": inconsistent,
+            "score": score,
+            "details": report
+        }
+    # End Item 7

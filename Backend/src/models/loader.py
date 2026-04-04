@@ -1,6 +1,6 @@
 import json
 from models.node import Node
-from  models.flight import Flight
+from models.flight import Flight
 
 
 # Building the tree by insertion (it means inserting one by one from the list found on JSON file)

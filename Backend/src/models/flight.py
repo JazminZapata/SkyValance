@@ -34,7 +34,7 @@ class Flight:
         return None
 
     def getIngresoBase(self, precioFinal):
-      return self.pasajeros * precioFinal
+        return self.pasajeros * precioFinal
 
     
     #  función interna (estatica para poderla usar en flightService) para extraer el número del código del vuelo, asumiendo que el código tiene un formato como "FL1234" y queremos extraer el número 1234 para comparaciones numéricas
