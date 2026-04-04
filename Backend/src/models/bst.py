@@ -1,5 +1,4 @@
-from tree import Tree
-
+from models.tree import Tree
 
 class BST(Tree):
 

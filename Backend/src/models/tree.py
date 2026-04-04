@@ -1,6 +1,5 @@
 import json
 
-
 class Tree:
     # constructor del árbol que se crea inicialmente con una raiz vacía
     def __init__(self):
@@ -34,6 +33,10 @@ class Tree:
     # Método para retornar la raiz del árbol
     def getRoot(self):
         return self.root
+
+    # Método para retornar la raiz del árbol
+    def getRoot(self):
+        return self.root
         
     def insert(self, node):
         # verificar si no hay raiz para asignar el nuevo como raiz
@@ -41,6 +44,8 @@ class Tree:
             self.root = node
         else:
             self.__insert(self.root, node)
+
+   
 
     # Método que permita realizar la búsqueda de un nodo mediante su valor
     # debe seguir la lógica de las reglas de un BST
@@ -187,7 +192,7 @@ class Tree:
             self.__inOrderTraversal(self.root, result)
             return result
 
-    # Método recursivo para el recorrido Pre-Order
+    # Método recursivo para el recorrido In-Order
     def __inOrderTraversal(self, currentRoot, result):
         # se verifica si tiene hijo izquierdo para seguir el recorrido por él
         if currentRoot.getLeftChild() is not None:
@@ -212,7 +217,7 @@ class Tree:
             self.__posOrderTraversal(self.root, result)
             return result
 
-    # Método recursivo para el recorrido Pre-Order
+    # Método recursivo para el recorrido Pos-Order
     def __posOrderTraversal(self, currentRoot, result):
         # se verifica si tiene hijo izquierdo para seguir el recorrido por él
         if currentRoot.getLeftChild() is not None:
@@ -404,7 +409,6 @@ class Tree:
         elif node.getLeftChild() is not None and node.getRightChild() is not None:
             nodeCase = 3
         return nodeCase
-
     def toJSON(self, node):
         if node is None:
             return None
@@ -515,4 +519,27 @@ class Tree:
         # Return selected node
         return worst
 
-    # End Item 8.
+    # End Item 8.    
+    
+    def countLeaves(self):
+        if self.root is None:
+            return 0
+        return self.__countLeaves(self.root)
+    
+    def __countLeaves(self, node):
+        # caso base: si es hoja
+        if node.getLeftChild() is None and node.getRightChild() is None:
+            return 1
+
+        leaves = 0
+
+        # recorrer izquierda
+        if node.getLeftChild() is not None:
+            leaves += self.__countLeaves(node.getLeftChild())
+
+
+        # recorrer derecha
+        if node.getRightChild() is not None:
+            leaves += self.__countLeaves(node.getRightChild())
+
+        return leaves

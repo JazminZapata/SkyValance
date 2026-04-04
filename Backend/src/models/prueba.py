@@ -1,8 +1,8 @@
-from flight import Flight
-from node import Node
-from avl import AVL
-from bst import BST
-from loader import loadTree
+from models.flight import Flight
+from models.node import Node
+from models.avl import AVL
+from models.bst import BST
+from models.loader import loadTree
 
 # Create trees
 avl = AVL()

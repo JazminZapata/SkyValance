@@ -1,6 +1,7 @@
 # Item 2 — Saves and restores named versions of the tree
 import json
 import os
+from models.loader import buildByTopology
 
 class VersionManager:
 
@@ -16,33 +17,34 @@ class VersionManager:
         with open("versions.json", "w", encoding="utf-8") as f:
             json.dump(self.versions, f, indent=4, ensure_ascii=False)
 
-    def save(self, name: str, tree):
-        # Save current tree structure and depth limit under the given name
+    def save(self, name: str, tree, bst=None):
+        # Save current AVL and BST state under the given name
         self.versions[name] = {
-            "copy": tree.toJSON(tree.root),
+            "avl_copy": tree.toJSON(tree.root),
+            "bst_copy": tree.toJSON(bst.root) if bst and bst.root else None,
             "limite": tree.limite
         }
         self._persist()
         print(f"Version '{name}' saved.")
 
-    def restore(self, name: str, tree):
+    def restore(self, name: str, tree, bst=None):
         if name not in self.versions:
             print(f"Version '{name}' not found.")
             return
-        from loader import buildByTopology
+        from models.loader import buildByTopology
         entry = self.versions[name]
-        # Rebuild tree from saved copy and restore depth limit
-        tree.root = buildByTopology(entry["copy"])
+        # Restore AVL
+        tree.root = buildByTopology(entry["avl_copy"])
         tree.limite = entry["limite"]
         tree.recalculatePrices()
+        # Restore BST if it was saved
+        if bst and entry.get("bst_copy"):
+            bst.root = buildByTopology(entry["bst_copy"])
         print(f"Version '{name}' restored.")
 
     def list_versions(self):
-        if not self.versions:
-            print("No saved versions.")
-            return
-        for name in self.versions:
-            print(f"- {name} (limit: {self.versions[name]['limite']})")
+        # Returns list of version names
+        return list(self.versions.keys())
 
     def delete_version(self, name: str):
         if name not in self.versions:
