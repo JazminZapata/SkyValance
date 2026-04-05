@@ -4,7 +4,8 @@ class Tree:
     # constructor del árbol que se crea inicialmente con una raiz vacía
     def __init__(self):
             self.root = None
-            self.limite = 3  # Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
+            self.limite = 3 
+            self.queue = []# Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
 
     # Item 6 :
     # Method for defining the critical depth limit
@@ -546,3 +547,30 @@ class Tree:
             leaves += self.__countLeaves(node.getRightChild())
 
         return leaves
+    
+    
+    # Start Item 3.
+    
+
+    def insertionQueue(self, node):
+        self.queue.append(node)
+        
+    
+    def processInsertionQueue(self):
+      while len(self.queue) > 0:
+        currentNode = self.queue.pop(0)
+
+        print(f"Insertando: {currentNode.getValue().codigo}")
+
+        self.insert(currentNode)
+
+        # Show conflicts after each insertion
+        bf = self.getBalanceFactor(currentNode)
+        if bf > 1 or bf < -1:
+            print(f" Desbalance detectado en {currentNode.getValue().codigo}")
+            
+            
+            
+                    
+        
+        

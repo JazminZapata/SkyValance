@@ -14,6 +14,7 @@ sys.path.append(os.path.abspath("Backend/src"))
 from models.avl import AVL
 from models.bst import BST
 from models.flight import Flight
+from models.node import Node
 from models.loader import buildByInsertion, buildByTopology
 from services.flightService import FlightService
 
@@ -88,6 +89,9 @@ if "stress_mode" not in st.session_state:
 
 if "rebalance_cost" not in st.session_state:
         st.session_state.rebalance_cost = None
+                
+if "insertion_queue" not in st.session_state:
+    st.session_state.insertion_queue = []
 
 # Referencias rápidas al service y sus árboles
 service = st.session_state.service
@@ -677,3 +681,17 @@ with col3:
         else:
             st.session_state.highlight = None
             st.error("Not found")
+    
+    # Item 3.
+    
+    if st.button("Add to Queue"):
+        if not f.codigo:
+            st.warning("Flight code is required")
+        else:
+            flight = Flight(f.codigo, f.origen, f.destino, f.horaSalida, f.precioBase, f.pasajeros, f.promocion, f.alerta)
+            nodo = Node(flight)
+
+            st.session_state.insertion_queue.append(nodo)
+
+            st.success(f"Vuelo {f.codigo} agregado a la cola")
+            st.rerun()
