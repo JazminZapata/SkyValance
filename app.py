@@ -632,27 +632,21 @@ with col1:
         st.success(f"Deleted Node: **{d['code']}** — Profitability: **${d['profitability']:,.2f}**")
 
     if st.button("Remove Low Profit Node"):
-      if avl.root is None:
-        st.warning("Tree is empty")
-      else:
-        try:
-            node = avl.findMinProfit()
-            if node is None:
-                st.warning("There are no nodes to delete")
-            else:
-                code = node.getValue().codigo
-                profitability = avl.getProfit(node)
-                
-                avl.deleteMinProfit()
-                
-                st.session_state.avl = avl  
-                st.session_state.last_deleted = {
-                    "code": code,
-                    "profitability": profitability
-                }
-                st.rerun()
-        except Exception as e:
-            st.error(f"Error: {e}")
+        if avl.root is None:
+            st.warning("Tree is empty")
+        else:
+            try:
+                codigo, profitability = service.deleteMinProfit()
+                if codigo is None:
+                    st.warning("There are no nodes to delete")
+                else:
+                    st.session_state.last_deleted = {
+                        "code": codigo,
+                        "profitability": profitability
+                    }
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Error: {e}")
     
     if st.button("🔍 Debug Balance"):
      if avl.root:

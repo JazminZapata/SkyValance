@@ -285,3 +285,23 @@ class FlightService:
             print(f"Flight {codigo} and subtree cancelled.")
         else:
             print("Flight not found.")
+            
+    # Item 8.        
+    def deleteMinProfit(self):
+      node = self.tree.findMinProfit()
+
+      if node is None:
+        return None, None
+
+      codigo = node.getValue().codigo
+      profitability = self.tree.getProfit(node)
+
+    # Cancel node with minimum profitability
+      self.cancel_flight(codigo)
+
+    # Rebalance and recalculate prices after cancellation
+      if self.tree.root is not None:
+        self.tree.checkBalance(self.tree.root)
+        self.tree.recalculatePrices()
+
+      return codigo, profitability

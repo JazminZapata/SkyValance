@@ -215,27 +215,6 @@ class AVL(Tree):
         # After deletion, depths may change — recalculate critical flags and prices
         self.recalculatePrices()
 
-    # deleteMinProfit MUST be implemented in AVL because it knows how to rebalance.
-    # Item 8.
-
-    def deleteMinProfit(self):
-        node = self.findMinProfit()
-
-        if node is None:
-          return
-
-        parent = node.getParent()
-        print(f"Nodo a eliminar: {node.getValue().codigo}")
-        print(f"Padre guardado: {parent.getValue().codigo if parent else 'None'}")
-
-        self.delete(node.getValue().codigo_comp)
-
-        print(f"BF del padre después de delete: {self.getBalanceFactor(parent)}")
-        print(f"Padre sigue en árbol: {self.search(parent.getValue().codigo_comp) is not None}")
-
-        self.checkBalance(parent)
-        self.recalculatePrices()
-    # End Item 8.
 
     # No balancea automaticamente, hace parte de la prueba estres
     def enable_stress_mode(self):
