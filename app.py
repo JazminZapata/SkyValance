@@ -92,6 +92,12 @@ if "rebalance_cost" not in st.session_state:
                 
 if "insertion_queue" not in st.session_state:
     st.session_state.insertion_queue = []
+    
+if "processing_queue" not in st.session_state:
+    st.session_state.processing_queue = False
+
+if "insertion_queue_snapshot" not in st.session_state:
+    st.session_state.insertion_queue_snapshot = []
 
 # Referencias rápidas al service y sus árboles
 service = st.session_state.service
@@ -464,7 +470,98 @@ with col1:
                 if st.button("Dismiss"):
                     st.session_state.cancel_flight_node = None
                     st.rerun()
+                    
+    # Item 3.                
+    
+    @st.dialog("Add Flight to Queue")
+    def queue_modal():
+        codigo = st.text_input("Flight Code", key="queue_codigo")
+        precio = st.number_input("Base Price", min_value=0, key="queue_precio")
+        pasajeros = st.number_input("Passengers", min_value=0, key="queue_pasajeros")
+        origen = st.text_input("Origin", key="queue_origen")
+        destino = st.text_input("Destination", key="queue_destino")
+        hora = st.text_input("Departure Time (HH:MM)", key="queue_hora")
+        promocion = st.checkbox("Discount", key="queue_promocion")
+        alerta = st.checkbox("Alert", key="queue_alerta")
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("Add to Queue"):
+               if not codigo:
+                st.warning("Flight code is required")
+               else:
+                  val = Flight.extractNum(codigo)
+                  # Check if it's already in the AVL tree
+                  if avl.search(val) is not None:
+                    st.error(f"Flight {codigo} already exists in the tree")
+                  # Check if it's already in the queue
+                  elif any(n.getValue().codigo_comp == val for n in st.session_state.insertion_queue):
+                    st.error(f"Flight {codigo} is already in the queue")
+                  else:
+                    flight = Flight(codigo, origen, destino, hora, precio, pasajeros, promocion, alerta)
+                    node = Node(flight)
+                    st.session_state.insertion_queue.append(node)
+                    st.success(f"Flight {codigo} added to queue")
+                    st.rerun()
+        with col_b:
+            if st.button("Cancel"):
+                st.rerun()
                 
+    @st.dialog("Pending Insertions")
+    def queue_dialog():
+        if not st.session_state.insertion_queue:
+            st.info("No pending insertions")
+            return
+
+        st.markdown("### Flights in queue")
+        for i, n in enumerate(st.session_state.insertion_queue):
+            f = n.getValue()
+            st.markdown(f"""
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                padding:8px 12px;
+                margin-bottom:6px;
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                border-radius:8px;
+                font-size:13px;
+            ">
+                <span style="
+                    background:#f59e0b;
+                    color:white;
+                    border-radius:50%;
+                    width:22px;
+                    height:22px;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-weight:700;
+                    font-size:11px;
+                ">{i+1}</span>
+                <strong>{f.codigo}</strong>
+                <span style="color:#64748b">{f.origen} → {f.destino}</span>
+                <span style="margin-left:auto; color:#94a3b8">${f.precioBase}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.divider()
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("▶ Process Queue", use_container_width=True, key="process_q"):
+                for n in st.session_state.insertion_queue:
+                  avl.insertionQueue(n)
+                st.session_state.insertion_queue = []
+                st.session_state.processing_queue = True
+                st.rerun()
+        with col_b:
+            if st.button("🗑 Clear", use_container_width=True, key="clear_q"):
+                st.session_state.insertion_queue = []
+                st.rerun()
+    # End Item 3.   
+             
     # --- Operaciones CRUD ---
     if st.button("Insert Flight", use_container_width=True): 
         insert_modal()
@@ -548,8 +645,7 @@ with col1:
                 
                 avl.deleteMinProfit()
                 
-                # Forzar que Streamlit reconozca el cambio
-                st.session_state.avl = avl  # ← esto es lo que faltaba
+                st.session_state.avl = avl  
                 st.session_state.last_deleted = {
                     "code": code,
                     "profitability": profitability
@@ -573,9 +669,6 @@ with col1:
             })
         st.json(debug_info)
 
-# ===============================
-# COLUMNA CENTRAL — Visualización
-# ===============================
 with col2:
 
     # AVL
@@ -603,10 +696,6 @@ with col2:
         st.pyplot(fig_bst)
         plt.close(fig_bst)
 
-
-# ===============================
-# MÉTRICAS (llamadas desde avl, tree y flightService)
-# ===============================
 metrics = service.get_metrics() if avl.root else {}
 height = metrics.get("altura", 0)
 leaves = metrics.get("hojas", 0)
@@ -615,9 +704,31 @@ mass_cancellations = metrics.get("cancelaciones_masivas", 0)
 bst_height = bst.heightTree() if bst.root else 0
 bst_leaves = bst.countLeaves() if bst.root else 0
 
-# ===============================
-# COLUMNA DERECHA — Métricas y búsqueda
-# ===============================
+# Item 3 — Process insertion queue
+
+if st.session_state.get("processing_queue"):
+    st.session_state.processing_queue = False
+
+    while len(avl.queue) > 0:
+        node, conflict = avl.processNextInQueue()  
+        if node:
+            bst.insertionQueue(Node(node.getValue()))
+            bst.processNextInQueue() 
+
+            avl.recalculatePrices()
+            tree_container.empty()
+            with tree_container:
+                draw_tree(avl)
+                
+            if conflict:
+             st.toast(conflict, icon="⚠️") 
+             
+            time.sleep(0.6)
+
+    st.rerun()
+    
+# End Item 5
+
 with col3:
 
     # --- Métricas AVL ---
@@ -681,17 +792,32 @@ with col3:
         else:
             st.session_state.highlight = None
             st.error("Not found")
-    
-    # Item 3.
-    
-    if st.button("Add to Queue"):
-        if not f.codigo:
-            st.warning("Flight code is required")
-        else:
-            flight = Flight(f.codigo, f.origen, f.destino, f.horaSalida, f.precioBase, f.pasajeros, f.promocion, f.alerta)
-            nodo = Node(flight)
+            
 
-            st.session_state.insertion_queue.append(nodo)
+    # Item 3 — Queue button + dialog
+    if st.session_state.insertion_queue:
+        count = len(st.session_state.insertion_queue)
 
-            st.success(f"Vuelo {f.codigo} agregado a la cola")
-            st.rerun()
+        st.markdown(f"""
+        <div style="
+            margin-top: 8px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+            cursor: pointer;
+        ">
+            <span style="font-size:13px; font-weight:600; color:#92400e;">
+                ✈️ {count} pending insertion{'s' if count > 1 else ''}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("Pending Insertions", use_container_width=True, key="open_queue_dialog"):
+            queue_dialog()
+
+    if st.button("Queue Flight", use_container_width=True):
+        queue_modal()
+            
+    # End item 3 Button.
+ 

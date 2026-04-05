@@ -47,7 +47,6 @@ class Tree:
             self.__insert(self.root, node)
 
    
-
     # Método que permita realizar la búsqueda de un nodo mediante su valor
     # debe seguir la lógica de las reglas de un BST
     def search(self, value):
@@ -551,23 +550,22 @@ class Tree:
     
     # Start Item 3.
     
-
     def insertionQueue(self, node):
         self.queue.append(node)
         
     
-    def processInsertionQueue(self):
-      while len(self.queue) > 0:
-        currentNode = self.queue.pop(0)
-
-        print(f"Insertando: {currentNode.getValue().codigo}")
-
-        self.insert(currentNode)
-
-        # Show conflicts after each insertion
-        bf = self.getBalanceFactor(currentNode)
-        if bf > 1 or bf < -1:
-            print(f" Desbalance detectado en {currentNode.getValue().codigo}")
+    def processNextInQueue(self):
+      if len(self.queue) == 0:
+        return None
+    
+      currentNode = self.queue.pop(0)
+      self.insert(currentNode)
+      
+      conflict = None
+      if self.isCritical(currentNode):
+        conflict = f" {currentNode.getValue().codigo} inserted at critical depth ({self.getDepth(currentNode)})"
+    
+      return currentNode, conflict
             
             
             
