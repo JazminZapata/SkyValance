@@ -17,144 +17,53 @@ class FlightService:
         self.versions = VersionManager()
         self.mass_cancellations = 0
         self.load_type = None  # Para rastrear el tipo de carga (inserción o topología)
-        
-        
-    #LOAD FROM JSON
+
+    # LOAD FROM JSON
     def load_from_json(self, filepath):
         self.filepath = filepath
-        self.history.save(self.tree, self.bst)  # Guardar estado antes de cargar nuevo árbol
+        self.history.save(
+            self.tree, self.bst
+        )  # Guardar estado antes de cargar nuevo árbol
 
         import json
+
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         self.load_type = data.get("tipo")
 
         loadTree(self.tree, self.bst, filepath)
-    
-    #Save json    
+
+    # Save json
     def save_to_json(self):
         if self.load_type == "INSERCION":
             self.__save_as_insertion()
         else:
             self.tree.exportTree(self.filepath)
-            
+
     def __save_as_insertion(self):
 
         vuelos = []
 
         for node in self.tree.copyBreadthFirstSearch():
             f = node.getValue()
-            vuelos.append({
-                "codigo": f.codigo,
-                "origen": f.origen,
-                "destino": f.destino,
-                "horaSalida": f.horaSalida,
-                "precioBase": f.precioBase,
-                "pasajeros": f.pasajeros,
-                "promocion": f.promocion,
-                "alerta": f.alerta
-            })
+            vuelos.append(
+                {
+                    "codigo": f.codigo,
+                    "origen": f.origen,
+                    "destino": f.destino,
+                    "horaSalida": f.horaSalida,
+                    "precioBase": f.precioBase,
+                    "pasajeros": f.pasajeros,
+                    "promocion": f.promocion,
+                    "alerta": f.alerta,
+                }
+            )
 
-        data = {
-            "tipo": "INSERCION",
-            "vuelos": vuelos
-        }
+        data = {"tipo": "INSERCION", "vuelos": vuelos}
 
         with open(self.filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-
-    # CREATE
-    def create_flight(self, flight):
-        # Guardar estado antes del cambio (para undo)
-        self.history.save(self.tree, self.bst)
-
-        node = Node(flight)
-        self.tree.insert(node)
-        
-        #Para actualizar el bst 
-        if self.bst:
-            self.bst.insert(Node(flight))
-
-        print(f"Vuelo {flight.codigo} creado correctamente")
-
-    # DELETE
-    def delete_flight(self, codigo):
-        numero = Flight.extractNum(codigo)
-
-        node = self.tree.search(numero)
-
-        if node:
-            # Guardar estado antes del cambio
-            self.history.save(self.tree, self.bst)
-
-            self.tree.delete(numero)
-            
-            if self.bst:
-                self.bst.delete(numero)
-
-            print(f"Vuelo {codigo} eliminado correctamente")
-        else:
-            print("Vuelo no encontrado")
-
-    # UPDATE
-    def update_flight(self, codigo, new_data):
-        numero = Flight.extractNum(codigo)
-
-        node = self.tree.search(numero)
-
-        if node:
-            # Guardar estado antes del cambio
-            self.history.save(self.tree , self.bst)
-
-            # Obtener datos actuales
-            old_data = node.getValue()
-
-            # Crear copia de seguridad
-            old_copy = Flight(
-                old_data.codigo,
-                old_data.origen,
-                old_data.destino,
-                old_data.horaSalida,
-                old_data.precioBase,
-                old_data.pasajeros,
-                old_data.promocion,
-                old_data.alerta,
-            )
-
-            # Actualizar atributos dinámicamente
-            for key, value in new_data.items():
-                setattr(node.getValue(), key, value)
-
-            print(f"Vuelo {codigo} actualizado correctamente")
-        else:
-            print("Vuelo no encontrado")
-
-
-    # CANCEL (subárbol completo)
-    def cancel_flight(self, codigo):
-        numero = Flight.extractNum(codigo)
-
-        node = self.tree.search(numero)
-
-        if node:
-            # Guardar estado antes del cambio
-            self.history.save(self.tree, self.bst)
-
-            # Obtener todos los nodos del subárbol
-            subtree_nodes = self.tree.get_subtree_nodes(node)
-
-            # Eliminar desde hojas hacia arriba
-            for n in reversed(subtree_nodes):
-                self.tree.delete(n.getValue().codigo_comp)
-                if self.bst:
-                    self.bst.delete(n.getValue().codigo_comp)
-                
-            self.mass_cancellations += 1
-
-            print(f"Vuelo {codigo} y su subárbol fueron cancelados correctamente")
-        else:
-            print("Vuelo no encontrado")
 
     # UNDO (Ctrl + Z)
     def undo(self):
@@ -190,8 +99,7 @@ class FlightService:
         self.versions.delete_version(name)
 
     # End Item 2.
-        
-    
+
     def get_metrics(self):
         metrics = {}
 
@@ -221,7 +129,7 @@ class FlightService:
         ]
 
         return metrics
-    
+
     def export_metrics(self, filename="metrics.json"):
         import json
 
@@ -231,10 +139,10 @@ class FlightService:
             json.dump(metrics, f, indent=4, ensure_ascii=False)
 
         print("Métricas exportadas correctamente")
-        
-    #Sync BST (for staying updated with AVL changes)
+
+    # Sync BST (for staying updated with AVL changes)
     def create_flight(self, flight):
-        self.history.save(self.tree)
+        self.history.save(self.tree, self.bst)
         self.tree.insert(Node(flight))
         # Sync BST — insert without balancing
         if self.bst:
@@ -245,11 +153,11 @@ class FlightService:
         numero = Flight.extractNum(codigo)
         node = self.tree.search(numero)
         if node:
-            self.history.save(self.tree)
+            self.history.save(self.tree, self.bst)
             self.tree.delete(numero)
             # Sync BST
             if self.bst:
-                self.bst.delete(numero)
+                self.bst.delete(numero) 
             print(f"Flight {codigo} deleted.")
         else:
             print("Flight not found.")
@@ -258,7 +166,7 @@ class FlightService:
         numero = Flight.extractNum(codigo)
         node = self.tree.search(numero)
         if node:
-            self.history.save(self.tree)
+            self.history.save(self.tree, self.bst)
             for key, value in new_data.items():
                 setattr(node.getValue(), key, value)
             # Sync BST — same node reference, update reflects automatically
@@ -275,8 +183,10 @@ class FlightService:
         numero = Flight.extractNum(codigo)
         node = self.tree.search(numero)
         if node:
-            self.history.save(self.tree)
-            codes = [n.getValue().codigo_comp for n in self.tree.get_subtree_nodes(node)]
+            self.history.save(self.tree, self.bst)
+            codes = [
+                n.getValue().codigo_comp for n in self.tree.get_subtree_nodes(node)
+            ]
             for code in reversed(codes):
                 self.tree.delete(code)
                 # Sync BST
@@ -285,23 +195,23 @@ class FlightService:
             print(f"Flight {codigo} and subtree cancelled.")
         else:
             print("Flight not found.")
-            
-    # Item 8.        
+
+    # Item 8.
     def deleteMinProfit(self):
-      node = self.tree.findMinProfit()
+        node = self.tree.findMinProfit()
 
-      if node is None:
-        return None, None
+        if node is None:
+            return None, None
 
-      codigo = node.getValue().codigo
-      profitability = self.tree.getProfit(node)
+        codigo = node.getValue().codigo
+        profitability = self.tree.getProfit(node)
 
-    # Cancel node with minimum profitability
-      self.cancel_flight(codigo)
+        # Cancel node with minimum profitability
+        self.cancel_flight(codigo)
 
-    # Rebalance and recalculate prices after cancellation
-      if self.tree.root is not None:
-        self.tree.checkBalance(self.tree.root)
-        self.tree.recalculatePrices()
+        # Rebalance and recalculate prices after cancellation
+        if self.tree.root is not None:
+            self.tree.checkBalance(self.tree.root)
+            self.tree.recalculatePrices()
 
-      return codigo, profitability
+        return codigo, profitability
