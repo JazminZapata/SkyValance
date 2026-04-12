@@ -385,13 +385,13 @@ with col1:
             nodo = st.session_state.edit_flight_node
             f = nodo.getValue()
 
-            origen = st.text_input("Origin", value=f.origen, key="edit_origen")
-            destino = st.text_input("Destination", value=f.destino, key="edit_destino")
-            hora = st.text_input("Departure Time", value=f.horaSalida, key="edit_hora")
-            precio = st.number_input("Base Price", value=f.precioBase, min_value=0, key="edit_precio")
-            pasajeros = st.number_input("Passengers", value=f.pasajeros, min_value=0, key="edit_pasajeros")
-            promocion = st.checkbox("Discount", value=f.promocion, key="edit_promocion")
-            alerta = st.checkbox("Alert", value=f.alerta, key="edit_alerta")
+            origen = st.text_input("Origin", value=f.getOrigen(), key="edit_origen")
+            destino = st.text_input("Destination", value=f.getDestino(), key="edit_destino")
+            hora = st.text_input("Departure Time", value=f.getHoraSalida(), key="edit_hora")
+            precio = st.number_input("Base Price", value=f.getPrecioBase(), min_value=0, key="edit_precio")
+            pasajeros = st.number_input("Passengers", value=f.getPasajeros(), min_value=0, key="edit_pasajeros")
+            promocion = st.checkbox("Discount", value=f.getPromocion(), key="edit_promocion")
+            alerta = st.checkbox("Alert", value=f.getAlerta(), key="edit_alerta")
 
             col_a, col_b = st.columns(2)
             with col_a:

@@ -78,20 +78,35 @@ class FlightService:
             print("Flight not found.")
 
     # UPDATE
+    # UPDATE
     def update_flight(self, codigo, new_data):
         numero = Flight.extractNum(codigo)
         node = self.tree.search(numero)
         if node:
             # Save state before the change
             self.history.save(self.tree, self.bst)
+            f = node.getValue()
+            # Use setters to respect encapsulation
+            setter_map = {
+                "origen": f.setOrigen,
+                "destino": f.setDestino,
+                "horaSalida": f.setHoraSalida,
+                "precioBase": f.setPrecioBase,
+                "pasajeros": f.setPasajeros,
+                "promocion": f.setPromocion,
+                "alerta": f.setAlerta
+            }
             for key, value in new_data.items():
-                setattr(node.getValue(), key, value)
+                if key in setter_map:
+                    setter_map[key](value)
             # Sync BST — same node reference, update reflects automatically
             if self.bst:
                 bst_node = self.bst.search(numero)
                 if bst_node:
+                    bf = bst_node.getValue()
                     for key, value in new_data.items():
-                        setattr(bst_node.getValue(), key, value)
+                        if key in setter_map:
+                            setter_map[key](value)
             print(f"Flight {codigo} updated.")
         else:
             print("Flight not found.")
