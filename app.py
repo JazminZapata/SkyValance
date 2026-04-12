@@ -213,42 +213,49 @@ def animar_recorrido(nodes, container):
         draw_tree(avl)
 
 
-# Item 7 — AVL Audit modal (defined here so it's available globally)
+# Item 7 — AVL Audit modal
 @st.dialog("AVL Audit Report")
 def audit_modal(audit):
     # Health score
     score = audit["score"]
-    color = "🟢" if score == 100 else "🟡" if score >= 70 else "🔴"
-    st.markdown(f"### {color} Tree Health: {score}%")
+    total = audit["total"]
+    valid = audit["valid"]
+    inconsistent = audit["inconsistent_count"]
 
-    # Summary metrics
-    col_a, col_b, col_c = st.columns(3)
-    col_a.metric("Total Nodes", audit["total"])
-    col_b.metric("Valid", audit["valid"])
-    col_c.metric("Inconsistent", audit["inconsistent_count"])
+    # Show overall result
+    if inconsistent == 0:
+        st.success(f"The tree is valid — all {total} nodes passed the audit.")
+    else:
+        st.error(f"{inconsistent} out of {total} nodes have problems.")
 
     st.divider()
 
-    # Node details
+    # Summary numbers
+    col_a, col_b, col_c = st.columns(3)
+    col_a.metric("Total Nodes", total)
+    col_b.metric("Valid", valid)
+    col_c.metric("With Problems", inconsistent)
+
+    st.divider()
+
+    # Node by node details
     st.markdown("### Node Details")
     for entry in audit["details"]:
-        icon = "🟢" if entry["ok"] else "🔴"
-        critical_tag = "Critical" if entry["critical"] else ""
+        status = "OK" if entry["ok"] else "PROBLEM"
+        critical = " — Critical Node" if entry["critical"] else ""
         st.markdown(
-            f"{icon} **{entry['codigo']}**{critical_tag} | "
-            f"BF: `{entry['balance_factor']}` {'✅' if entry['bf_ok'] else '❌'} | "
-            f"Height: `{entry['height']}` {'✅' if entry['height_ok'] else '❌'} | "
+            f"**{entry['codigo']}** — {status}{critical} | "
+            f"Balance Factor: `{entry['balance_factor']}` {'OK' if entry['bf_ok'] else 'Invalid'} | "
+            f"Height: `{entry['height']}` {'OK' if entry['height_ok'] else 'Invalid'} | "
             f"Depth: `{entry['depth']}`"
         )
 
     st.divider()
 
     # Recommendation
-    if audit["inconsistent_count"] == 0:
-        st.success("Tree is a valid AVL — no issues found")
-    else:
-        st.error(f"{audit['inconsistent_count']} inconsistent node(s) found")
-        st.warning("Recommendation: Run *Rebalance Now* to fix the tree")
+    if inconsistent > 0:
+        st.warning("The tree is not balanced. Run Rebalance Now to fix it.")
+        
 # End Item 7
 
 
