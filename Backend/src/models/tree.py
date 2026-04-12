@@ -405,7 +405,7 @@ class Tree:
             nodeCase = 1
         elif node.getLeftChild() is not None and node.getRightChild() is not None:
             nodeCase = 3
-        return 
+        return nodeCase  
     
     # Start item 1.3
     

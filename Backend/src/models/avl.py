@@ -69,8 +69,8 @@ class AVL(Tree):
     # Recursive method to validate the balancing of a tree
     def __checkBalance(self, node):
         bf = self.getBalanceFactor(node)
-        print(f"checkBalance en {node.getValue().getCodigo} bf={bf}")
-        print(f"Chequeando {node.getValue().getCodigo} | BF: {bf}")
+        print(f"checkBalance en {node.getValue().getCodigo()} bf={bf}")
+        print(f"Chequeando {node.getValue().getCodigo()} | BF: {bf}")
         if bf > 1 or bf < -1:
             bfCase = self.getBalanceCase(node, bf)
             print(f"  → caso: {bfCase}")
@@ -200,8 +200,6 @@ class AVL(Tree):
         rightChildHeight = self.getHeightNode(node.getRightChild())
         return leftChildHeight - rightChildHeight
 
-    # deleteMinRentabilidad sí o sí debe estar en AVL porque es quien sabe rebalancear.
-
     # Necessary to recalculate prices in case the critical node, after removal
     def delete(self, value):
         node = self.search(value)
@@ -231,16 +229,47 @@ class AVL(Tree):
 
         initial_rotations = self.rotations.copy()
 
-        # 1. Get nodes in order (BST ordered)
-        nodes = self.inOrderTraversal()
+        # 1. Get leaves first (nodes without children) using postorder traversal
+        # PostOrder guarantees that we process children before parents → bottom-up cascade
+        nodes = self.posOrderTraversal()
 
-        # 2. Rebuild balanced tree
-        self.root = self.__build_balanced(nodes, 0, len(nodes) - 1)
+        # 2. Apply checkBalance at each node from bottom to top
 
-        # 3. Recalculate prices
+        # __checkBalance already recursively moves up to the parent if there's no imbalance,
+
+        # but here we call it node by node to force the cascading check
+        visited = set()
+
+        for node in nodes:
+            # Evitar procesar nodos que ya fueron rotados y reasignados
+            node_id = id(node)
+            if node_id in visited:
+                continue
+            visited.add(node_id)
+
+            bf = self.getBalanceFactor(node)
+            if bf > 1 or bf < -1:
+                bfCase = self.getBalanceCase(node, bf)
+                match bfCase:
+                    case "LL":
+                        self.rotations["LL"] += 1
+                        self.__rotateRight(node)
+                    case "RR":
+                        self.rotations["RR"] += 1
+                        self.__rotateLeft(node)
+                    case "LR":
+                        self.rotations["LR"] += 1
+                        self.__rotateLeft(node.getLeftChild())
+                        self.__rotateRight(node)
+                    case "RL":
+                        self.rotations["RL"] += 1
+                        self.__rotateRight(node.getRightChild())
+                        self.__rotateLeft(node)
+
+        # Avoid processing nodes that have already been rotated and reassigned
         self.recalculatePrices()
 
-        # 4. Calculate cost (simulated)
+        # 4. Return differential cost of rotations
         cost = {}
         for key in self.rotations:
             cost[key] = self.rotations[key] - initial_rotations[key]

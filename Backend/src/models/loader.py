@@ -64,9 +64,6 @@ def loadTree(avl, bst, file):
 
     with open(file, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
-    # Esto debe ser cambiado para que el usuario pueda seleccionar el modo de carga, por ahora se hace con un if pero lo ideal es que el usuario pueda elegir el archivo o el modo de carga   
-    # Esto lo cambiaré al momento del frontend 
 
     tipo = data.get("tipo")
 

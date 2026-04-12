@@ -84,14 +84,28 @@ class FlightService:
         if node:
             # Save state before the change
             self.history.save(self.tree, self.bst)
+            f = node.getValue()
+            # Use setters to respect encapsulation
+            setter_map = {
+                "origen": f.setOrigen,
+                "destino": f.setDestino,
+                "horaSalida": f.setHoraSalida,
+                "precioBase": f.setPrecioBase,
+                "pasajeros": f.setPasajeros,
+                "promocion": f.setPromocion,
+                "alerta": f.setAlerta
+            }
             for key, value in new_data.items():
-                setattr(node.getValue(), key, value)
+                if key in setter_map:
+                    setter_map[key](value)
             # Sync BST — same node reference, update reflects automatically
             if self.bst:
                 bst_node = self.bst.search(numero)
                 if bst_node:
+                    bf = bst_node.getValue()
                     for key, value in new_data.items():
-                        setattr(bst_node.getValue(), key, value)
+                        if key in setter_map:
+                            setter_map[key](value)
             print(f"Flight {codigo} updated.")
         else:
             print("Flight not found.")
@@ -183,64 +197,6 @@ class FlightService:
             json.dump(metrics, f, indent=4, ensure_ascii=False)
         print("Metrics exported successfully")
 
-        print("Métricas exportadas correctamente")
-        
-    #Sync BST (for staying updated with AVL changes)
-    def create_flight(self, flight):
-        self.history.save(self.tree)
-        self.tree.insert(Node(flight))
-        # Sync BST — insert without balancing
-        if self.bst:
-            self.bst.insert(Node(flight))
-        print(f"Flight {flight.codigo} created.")
-
-    def delete_flight(self, codigo):
-        numero = Flight.extractNum(codigo)
-        node = self.tree.search(numero)
-        if node:
-            self.history.save(self.tree)
-            self.tree.delete(numero)
-            # Sync BST
-            if self.bst:
-                self.bst.delete(numero)
-            print(f"Flight {codigo} deleted.")
-        else:
-            print("Flight not found.")
-
-    def update_flight(self, codigo, new_data):
-        numero = Flight.extractNum(codigo)
-        node = self.tree.search(numero)
-        if node:
-            self.history.save(self.tree)
-            for key, value in new_data.items():
-                setattr(node.getValue(), key, value)
-            # Sync BST — same node reference, update reflects automatically
-            if self.bst:
-                bst_node = self.bst.search(numero)
-                if bst_node:
-                    for key, value in new_data.items():
-                        setattr(bst_node.getValue(), key, value)
-            print(f"Flight {codigo} updated.")
-        else:
-            print("Flight not found.")
-
-    def cancel_flight(self, codigo):
-        numero = Flight.extractNum(codigo)
-        node = self.tree.search(numero)
-        if node:
-            self.history.save(self.tree)
-            codes = [n.getValue().codigo_comp for n in self.tree.get_subtree_nodes(node)]
-            for code in reversed(codes):
-                self.tree.delete(code)
-                # Sync BST
-                if self.bst:
-                    self.bst.delete(code)
-            print(f"Flight {codigo} and subtree cancelled.")
-        else:
-            print("Flight not found.")
-            
-    # Item 8.
-    # deleteMinProfit must be here because it needs to interact with the cancel button 
     # Item 8.
     def deleteMinProfit(self):
         node = self.tree.findMinProfit()
