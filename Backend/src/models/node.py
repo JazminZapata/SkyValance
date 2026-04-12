@@ -58,16 +58,11 @@ class Node:
         self.finalPrice = finalPrice
         
     def getFinalPrice(self, tree=None):
-        # If tree is provided, compute dynamically based on criticality 25% surcharge
-        if tree is not None:
-            if tree.isCritical(self):
-                return self.getValue().precioBase * 1.25
-            return self.getValue().precioBase
-
-        # or use cached finalPrice or precioBase
+        # Always return the cached finalPrice calculated by recalculatePrices
         if self.finalPrice is not None:
             return self.finalPrice
-        return self.getValue().precioBase
+        # Fallback if no price has been calculated yet
+        return self.getValue().getPrecioBase()
 
     def setIsCritical(self, value: bool):
         # Sets whether this node is flagged as critical due to exceeding depth limit

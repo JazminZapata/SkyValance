@@ -60,7 +60,7 @@ elif modo == 2:
 print("\n--- PENALIZACIÓN POR PROFUNDIDAD CRÍTICA ---")
 print(f"Límite actual: {avl.limite}")
 for n in avl.copyBreadthFirstSearch():
-    codigo = n.getValue().codigo
+    codigo = n.getValue().getCodigo
     depth = avl.getDepth(n)
     critical = n.getIsCritical()
     base = n.getValue().precioBase
@@ -83,7 +83,7 @@ print(f"Balance raíz: {avl.getBalanceFactor(avl.root)}")
 print("\n--- PENALIZACIÓN TRAS INSERCIÓN ---")
 print(f"Límite actual: {avl.limite}")
 for n in avl.copyBreadthFirstSearch():
-    codigo = n.getValue().codigo
+    codigo = n.getValue().getCodigo
     depth = avl.getDepth(n)
     critical = n.getIsCritical()
     base = n.getValue().precioBase
@@ -93,7 +93,7 @@ for n in avl.copyBreadthFirstSearch():
 # Show profitability
 print("\n--- RENTABILIDAD DE NODOS ---")
 for n in avl.copyBreadthFirstSearch():
-    print(n.getValue().codigo, "→", avl.getProfit(n))
+    print(n.getValue().getCodigo, "→", avl.getProfit(n))
 
 
 # Delete least profitable node
@@ -107,7 +107,7 @@ avl.print_tree()
 print("\n--- PENALIZACIÓN TRAS ELIMINACIÓN ---")
 print(f"Límite actual: {avl.limite}")
 for n in avl.copyBreadthFirstSearch():
-    codigo = n.getValue().codigo
+    codigo = n.getValue().getCodigo
     depth = avl.getDepth(n)
     critical = n.getIsCritical()
     base = n.getValue().precioBase
@@ -121,7 +121,7 @@ if cambiar.lower() == "s":
     avl.setLimite(nuevo_limite)
     print(f"\n--- PRECIOS RECALCULADOS CON LÍMITE {nuevo_limite} ---")
     for n in avl.copyBreadthFirstSearch():
-        codigo = n.getValue().codigo
+        codigo = n.getValue().getCodigo
         depth = avl.getDepth(n)
         critical = n.getIsCritical()
         base = n.getValue().precioBase

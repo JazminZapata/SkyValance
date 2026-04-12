@@ -21,11 +21,11 @@ class AVL(Tree):
 
     # Método recursivo para insertar un nodo cuando se tiene raiz en el árbol
     def __insert(self, currentRoot, node):
-        if node.getValue().codigo_comp == currentRoot.getValue().codigo_comp:
-            print(f"El valor del nodo {node.getValue().codigo} ya existe en el árbol.")
+        if node.getValue().getCodigoComp() == currentRoot.getValue().getCodigoComp():
+            print(f"El valor del nodo {node.getValue().getCodigo} ya existe en el árbol.")
         else:
             # se verifica si el valor a insertar es mayor que el actual raiz
-            if node.getValue().codigo_comp > currentRoot.getValue().codigo_comp:
+            if node.getValue().getCodigoComp() > currentRoot.getValue().getCodigoComp():
                 # se verifica si existe un hijo derecho
                 if currentRoot.getRightChild() is None:
                     # si no tiene hijo derecho, se asigna el nodo como hijo derecho
@@ -68,8 +68,8 @@ class AVL(Tree):
     # Método recursivo para validar el balanceo de un árbol
     def __checkBalance(self, node):
         bf = self.getBalanceFactor(node)
-        print(f"checkBalance en {node.getValue().codigo} bf={bf}")
-        print(f"Chequeando {node.getValue().codigo} | BF: {bf}")
+        print(f"checkBalance en {node.getValue().getCodigo} bf={bf}")
+        print(f"Chequeando {node.getValue().getCodigo} | BF: {bf}")
         if bf > 1 or bf < -1:
             bfCase = self.getBalanceCase(node, bf)
             print(f"  → caso: {bfCase}")
@@ -276,7 +276,7 @@ class AVL(Tree):
         inconsistent = []
 
         for node in nodes:
-            codigo = node.getValue().codigo
+            codigo = node.getValue().getCodigo()
             bf = self.getBalanceFactor(node)
             real_height = self.getHeightNode(node)
             depth = self.getDepth(node)
