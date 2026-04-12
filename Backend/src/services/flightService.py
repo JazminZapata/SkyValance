@@ -286,7 +286,8 @@ class FlightService:
         else:
             print("Flight not found.")
             
-    # Item 8.        
+    # Item 8.
+    # deleteMinProfit must be here because it needs to interact with the cancel button 
     def deleteMinProfit(self):
       node = self.tree.findMinProfit()
 
