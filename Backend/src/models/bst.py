@@ -14,11 +14,11 @@ class BST(Tree):
 
     # Método recursivo para insertar un nodo cuando se tiene raiz en el árbol
     def __insert(self, currentRoot, node):
-        if node.getValue().codigo_comp == currentRoot.getValue().codigo_comp:
+        if node.getValue().getCodigoComp() == currentRoot.getValue().getCodigoComp():
             print(f"El valor del nodo {node.getValue()} ya existe en el árbol.")
         else:
             # se verifica si el valor a insertar es mayor que el actual raiz (codigo)
-            if node.getValue().codigo_comp > currentRoot.getValue().codigo_comp:
+            if node.getValue().getCodigoComp() > currentRoot.getValue().getCodigoComp():
                 # se verifica si existe un hijo derecho
                 if currentRoot.getRightChild() is None:
                     # si no tiene hijo derecho, se asigna el nodo como hijo derecho

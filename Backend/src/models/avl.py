@@ -1,4 +1,5 @@
 from models.tree import Tree
+from models.node import Node
 
 
 class AVL(Tree):
@@ -20,11 +21,11 @@ class AVL(Tree):
 
     # Método recursivo para insertar un nodo cuando se tiene raiz en el árbol
     def __insert(self, currentRoot, node):
-        if node.getValue().codigo_comp == currentRoot.getValue().codigo_comp:
-            print(f"El valor del nodo {node.getValue().codigo} ya existe en el árbol.")
+        if node.getValue().getCodigoComp() == currentRoot.getValue().getCodigoComp():
+            print(f"El valor del nodo {node.getValue().getCodigo} ya existe en el árbol.")
         else:
             # se verifica si el valor a insertar es mayor que el actual raiz
-            if node.getValue().codigo_comp > currentRoot.getValue().codigo_comp:
+            if node.getValue().getCodigoComp() > currentRoot.getValue().getCodigoComp():
                 # se verifica si existe un hijo derecho
                 if currentRoot.getRightChild() is None:
                     # si no tiene hijo derecho, se asigna el nodo como hijo derecho
@@ -67,9 +68,11 @@ class AVL(Tree):
     # Método recursivo para validar el balanceo de un árbol
     def __checkBalance(self, node):
         bf = self.getBalanceFactor(node)
-        print(f"Chequeando {node.getValue().codigo} | BF: {bf}")
+        print(f"checkBalance en {node.getValue().getCodigo} bf={bf}")
+        print(f"Chequeando {node.getValue().getCodigo} | BF: {bf}")
         if bf > 1 or bf < -1:
             bfCase = self.getBalanceCase(node, bf)
+            print(f"  → caso: {bfCase}")
             print(f"  → Desbalance detectado! Caso: {bfCase}")
             match bfCase:
                 case "LL":
@@ -173,12 +176,15 @@ class AVL(Tree):
         bfCase = ""
         if bf < -1:
             bfChild = self.getBalanceFactor(node.getRightChild())
+            print(f"  → bfChild en caso R: {bfChild}")
+            # caso negativo, va por R
             if bfChild <= 0:
                 bfCase = "RR"
             else:
                 bfCase = "RL"
         else:
             bfChild = self.getBalanceFactor(node.getLeftChild())
+            # caso positivo, va por L
             if bfChild >= 0:
                 bfCase = "LL"
             else:
@@ -209,34 +215,6 @@ class AVL(Tree):
         # After deletion, depths may change — recalculate critical flags and prices
         self.recalculatePrices()
 
-    # deleteMinProfit MUST be implemented in AVL because it knows how to rebalance.
-    # Item 8.
-
-    def deleteMinProfit(self):
-        node = self.findMinProfit()
-
-        if node is None:
-            print("There are no nodes to delete ")
-            return
-
-        print(f"Deleted Node: {node.getValue().codigo}")
-        print(f"Profitability: {self.getProfit(node)}")
-
-        parent = node.getParent()
-
-        # eliminar
-        self.delete(node.getValue().codigo_comp)
-
-        while parent is not None:
-            self.checkBalance(parent)
-            parent = parent.getParent()
-
-        if self.root is not None:
-            self.checkBalance(self.root)
-
-        self.recalculatePrices()
-
-    # End Item 8.
 
     # No balancea automaticamente, hace parte de la prueba estres
     def enable_stress_mode(self):
@@ -298,7 +276,7 @@ class AVL(Tree):
         inconsistent = []
 
         for node in nodes:
-            codigo = node.getValue().codigo
+            codigo = node.getValue().getCodigo()
             bf = self.getBalanceFactor(node)
             real_height = self.getHeightNode(node)
             depth = self.getDepth(node)

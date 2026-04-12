@@ -4,7 +4,8 @@ class Tree:
     # constructor del árbol que se crea inicialmente con una raiz vacía
     def __init__(self):
             self.root = None
-            self.limite = 3  # Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
+            self.limite = 3 
+            self.queue = []# Limite de profundidad para considerar un nodo como crítico, se puede ajustar según necesidades
 
     # Item 6 :
     # Method for defining the critical depth limit
@@ -24,16 +25,16 @@ class Tree:
         for node in self.copyBreadthFirstSearch():
             is_critical = self.isCritical(node)
             node.setIsCritical(is_critical)
+            price = node.getValue().getPrecioBase()
+            # Apply 25% surcharge if node exceeds depth limit
             if is_critical:
-                node.setFinalPrice(node.getValue().precioBase * 1.25)
-            else:
-                node.setFinalPrice(node.getValue().precioBase)  
+                price = price * 1.25
+            # Apply 10% discount if flight has a promotion
+            if node.getValue().getPromocion():
+                price = price * 0.90
+            node.setFinalPrice(price)  
     # Final Item 6.
-
-    # Método para retornar la raiz del árbol
-    def getRoot(self):
-        return self.root
-
+    
     # Método para retornar la raiz del árbol
     def getRoot(self):
         return self.root
@@ -44,8 +45,6 @@ class Tree:
             self.root = node
         else:
             self.__insert(self.root, node)
-
-   
 
     # Método que permita realizar la búsqueda de un nodo mediante su valor
     # debe seguir la lógica de las reglas de un BST
@@ -61,11 +60,11 @@ class Tree:
         # validar si el valor buscado es igual a la raiz actual
         # print(f"El valor del nodo es: {currentRoot.getValue()}")
         # print(f"Comparación: {currentRoot.getValue() == value}" )
-        if currentRoot.getValue().codigo_comp == value:
+        if currentRoot.getValue().getCodigoComp() == value:
             # si es así se retorna la actual raiz
             return currentRoot
         # sino se valida si se debe ir por la derecha o por la izquierda
-        elif value > currentRoot.getValue().codigo_comp:
+        elif value > currentRoot.getValue().getCodigoComp():
             # si es mayor, se verifica que exista un hijo derecho
             # en caso de no existir se genera
             if currentRoot.getRightChild() is None:
@@ -311,7 +310,7 @@ class Tree:
         if node.getParent() is None:
             self.root = None
             return
-        if node.getValue().codigo_comp < node.getParent().getValue().codigo_comp:
+        if node.getValue().getCodigoComp() < node.getParent().getValue().getCodigoComp():
             node.getParent().setLeftChild(None)
         else:
             node.getParent().setRightChild(None)
@@ -409,6 +408,7 @@ class Tree:
         elif node.getLeftChild() is not None and node.getRightChild() is not None:
             nodeCase = 3
         return nodeCase
+    
     def toJSON(self, node):
         if node is None:
             return None
@@ -416,21 +416,21 @@ class Tree:
         flight = node.getValue()
 
         return {
-            "codigo": flight.codigo,
-            "origen": flight.origen,
-            "destino": flight.destino,
-            "horaSalida": flight.horaSalida,
-            "precioBase": flight.precioBase,
-            "precioFinal": node.getFinalPrice(self),  # "hey node, calculate your final price using THIS tree"
-            "pasajeros": flight.pasajeros,
-            "promocion": flight.promocion,
-            "alerta": flight.alerta,
+            "codigo": flight.getCodigo(),
+            "origen": flight.getOrigen(),
+            "destino": flight.getDestino(),
+            "horaSalida": flight.getHoraSalida(),
+            "precioBase": flight.getPrecioBase(),
+            "precioFinal": node.getFinalPrice(self),  # Calculate final price based on current critical status
+            "pasajeros": flight.getPasajeros(),
+            "promocion": flight.getPromocion(),
+            "alerta": node.getIsCritical(),  # True if node exceeds the depth limit
             "altura": self.getHeightNode(node),
             "factorEquilibrio": self.getBalanceFactor(node),
             "prioridad": flight.getPriority(),
-            "rentabilidad": self.getProfit(node), 
+            "rentabilidad": self.getProfit(node),
             "izquierdo": self.toJSON(node.getLeftChild()),
-            "derecho": self.toJSON(node.getRightChild()),
+            "derecho": self.toJSON(node.getRightChild())
         }
 
     def exportTree(self, filename="tree.json"):
@@ -460,19 +460,14 @@ class Tree:
     # Start Item 8.
 
     def getProfit(self, node):
-
         flight = node.getValue()
-
         #  We use the method finalPrice made by Andres to get the final price of the flight, this method already considers the promotion and the penalty if it applies, so we can be sure that we are using the correct price for the profitability calculation 
         finalPrice = node.getFinalPrice(self)
-
         # Base income
-        profitability = flight.pasajeros * finalPrice
-
+        profitability = flight.getPasajeros() * finalPrice
         # Discount
-        if flight.promocion:
+        if flight.getPromocion():
             profitability -= 50
-
         return profitability
 
     def findMinProfit(self):
@@ -490,7 +485,7 @@ class Tree:
             # Calculate metrics for the current node
             p = self.getProfit(node)  # profitability
             depth = self.getDepth(node)  # depth
-            codigo = node.getValue().codigo_comp  # numeric code
+            codigo = node.getValue().getCodigoComp()  # numeric code
 
             # If it's the first node being evaluated, we set it as the worst by default
             if worst is None:
@@ -500,7 +495,7 @@ class Tree:
             # Calculate metrics for the worst node found so far
             p_worst = self.getProfit(worst)
             depth_worst = self.getDepth(worst)
-            cod_worst = worst.getValue().codigo_comp
+            cod_worst = worst.getValue().getCodigoComp()
 
             # Lowest profibitality
             if p < p_worst:
@@ -543,3 +538,29 @@ class Tree:
             leaves += self.__countLeaves(node.getRightChild())
 
         return leaves
+    
+    
+    # Start Item 3.
+    
+    def insertionQueue(self, node):
+        self.queue.append(node)
+        
+    
+    def processNextInQueue(self):
+      if len(self.queue) == 0:
+        return None
+    
+      currentNode = self.queue.pop(0)
+      self.insert(currentNode)
+      
+      conflict = None
+      if self.isCritical(currentNode):
+        conflict = f" {currentNode.getValue().getCodigo()} inserted at critical depth ({self.getDepth(currentNode)})"
+    
+      return currentNode, conflict
+            
+            
+            
+                    
+        
+        

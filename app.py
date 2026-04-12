@@ -14,12 +14,13 @@ sys.path.append(os.path.abspath("Backend/src"))
 from models.avl import AVL
 from models.bst import BST
 from models.flight import Flight
+from models.node import Node
 from models.loader import buildByInsertion, buildByTopology
 from services.flightService import FlightService
 
 
 # ===============================
-# CONFIGURACIÓN DE PÁGINA
+# PAGE CONFIGURATION
 # ===============================
 st.set_page_config(layout="wide")
 
@@ -88,15 +89,24 @@ if "stress_mode" not in st.session_state:
 
 if "rebalance_cost" not in st.session_state:
         st.session_state.rebalance_cost = None
+                
+if "insertion_queue" not in st.session_state:
+    st.session_state.insertion_queue = []
+    
+if "processing_queue" not in st.session_state:
+    st.session_state.processing_queue = False
 
-# Referencias rápidas al service y sus árboles
+if "insertion_queue_snapshot" not in st.session_state:
+    st.session_state.insertion_queue_snapshot = []
+
+# Quick references to the service and its trees
 service = st.session_state.service
 avl = service.tree
 bst = service.bst if service.bst else BST()
 
 
 # ===============================
-# FUNCIONES AUXILIARES
+# HELPER FUNCTIONS
 # ===============================
 
 
@@ -104,19 +114,23 @@ def build_graph(node, G=None, pos=None, x=0.0, y=0.0, layer=1):
     if G is None:
         G, pos = nx.DiGraph(), {}
     if node:
-        label = node.getValue().codigo
+        label = node.getValue().getCodigo()
         G.add_node(label)
         pos[label] = (x, y)
 
+        # Each level spreads nodes by a fixed offset that does not shrink with depth
+        offset = 4 / (layer * 0.7)
+
         if node.getLeftChild():
-            G.add_edge(label, node.getLeftChild().getValue().codigo)
-            build_graph(node.getLeftChild(), G, pos, x - 1/layer, y - 1, layer + 1)
+            G.add_edge(label, node.getLeftChild().getValue().getCodigo())
+            build_graph(node.getLeftChild(), G, pos, x - offset, y - 1, layer + 1)
 
         if node.getRightChild():
-            G.add_edge(label, node.getRightChild().getValue().codigo)
-            build_graph(node.getRightChild(), G, pos, x + 1/layer, y - 1, layer + 1)
+            G.add_edge(label, node.getRightChild().getValue().getCodigo())
+            build_graph(node.getRightChild(), G, pos, x + offset, y - 1, layer + 1)
 
     return G, pos
+
 
 
 def draw_tree(avl):
@@ -129,7 +143,7 @@ def draw_tree(avl):
     highlight = st.session_state.highlight
 
     # Build a lookup: to check isCritical
-    node_map = {n.getValue().codigo: n for n in avl.copyBreadthFirstSearch()}
+    node_map = {n.getValue().getCodigo(): n for n in avl.copyBreadthFirstSearch()}
 
     node_colors = []
     for n in G.nodes():
@@ -142,12 +156,12 @@ def draw_tree(avl):
         else:
             node_colors.append("#679df3")       # Blue — normal
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(20, 8))
     nx.draw(
         G, pos,
         with_labels=True,
         node_color=node_colors,
-        node_size=1400,
+        node_size=2000,
         font_color="white",
         edge_color="#94a3b8"
     )
@@ -168,7 +182,7 @@ def animar_recorrido(nodes, container):
         if st.session_state.stop_animacion:
             break
 
-        recorrido.append(n.getValue().codigo)
+        recorrido.append(n.getValue().getCodigo())
         st.session_state.recorrido = recorrido.copy()
 
         with container:
@@ -247,13 +261,13 @@ st.markdown(
 )
 
 # ===============================
-# LAYOUT PRINCIPAL (3 columnas)
+# MAIN LAYOUT (3 columns)
 # ===============================
 col1, col2, col3 = st.columns([1, 2, 1])
 
 
 # ===============================
-# COLUMNA IZQUIERDA — Controles
+# LEFT COLUMN — Controls
 # ===============================
 with col1:
     
@@ -274,7 +288,7 @@ with col1:
 
     st.divider()
 
-    # --- Carga de árbol ---
+    # --- Tree loading ---
     archivo = st.file_uploader("Load JSON", type="json")
     tipo = st.radio("Mode", ["Insertion", "Topology"])
 
@@ -327,7 +341,7 @@ with col1:
         
     st.divider()
     
-    #Modal para insertar nuevo vuelo
+    # Modal to insert a new flight
     @st.dialog("Insert New Flight")
     def insert_modal():
         codigo = st.text_input("Flight Code", key="insert_codigo")
@@ -355,7 +369,7 @@ with col1:
                 
     @st.dialog("Edit Flight")
     def edit_modal():
-        # PASO 1 — buscar el vuelo
+        # Step 1 — search the flight
         if st.session_state.edit_flight_node is None:
             codigo_buscar = st.text_input("Enter Flight Code to edit", key="edit_search")
             if st.button("Search"):
@@ -366,7 +380,7 @@ with col1:
                 else:
                     st.error("Flight not found")
 
-        # PASO 2 — editar con campos prellenados
+        # Step 2 — edit with pre-filled fields
         if st.session_state.edit_flight_node is not None:
             nodo = st.session_state.edit_flight_node
             f = nodo.getValue()
@@ -382,7 +396,7 @@ with col1:
             col_a, col_b = st.columns(2)
             with col_a:
                 if st.button("Confirm Edit"):
-                    service.update_flight(f.codigo, {
+                    service.update_flight(f.getCodigo(), {
                         "origen": origen,
                         "destino": destino,
                         "horaSalida": hora,
@@ -414,14 +428,14 @@ with col1:
             nodo = st.session_state.delete_flight_node
             f = nodo.getValue()
             
-            st.warning(f"Are you sure you want to delete flight **{f.codigo}**?")
-            st.write(f"Route: {f.origen} → {f.destino}")
-            st.write(f"Departure: {f.horaSalida}")
+            st.warning(f"Are you sure you want to delete flight **{f.getCodigo()}**?")
+            st.write(f"Route: {f.getOrigen()} → {f.getDestino()}")
+            st.write(f"Departure: {f.getHoraSalida()}")
             
             col_a, col_b = st.columns(2)
             with col_a:
                 if st.button("Confirm Delete"):
-                    service.delete_flight(f.codigo)
+                    service.delete_flight(f.getCodigo())
                     st.session_state.delete_flight_node = None
                     st.rerun()
             with col_b:
@@ -446,22 +460,112 @@ with col1:
             nodo = st.session_state.cancel_flight_node
             f = nodo.getValue()
             
-            st.error(f"This will cancel flight **{f.codigo}** and its entire subtree!")
-            st.write(f"Route: {f.origen} → {f.destino}")
-            st.write(f"Departure: {f.horaSalida}")
+            st.error(f"This will cancel flight **{f.getCodigo()}** and its entire subtree!")
+            st.write(f"Route: {f.getOrigen()} → {f.getDestino()}")
+            st.write(f"Departure: {f.getHoraSalida()}")
             
             col_a, col_b = st.columns(2)
             with col_a:
                 if st.button("Confirm Cancel"):
-                    service.cancel_flight(f.codigo)
+                    service.cancel_flight(f.getCodigo())
                     st.session_state.cancel_flight_node = None
                     st.rerun()
             with col_b:
                 if st.button("Dismiss"):
                     st.session_state.cancel_flight_node = None
                     st.rerun()
+                    
+    # Item 3.                
+    
+    @st.dialog("Add Flight to Queue")
+    def queue_modal():
+        codigo = st.text_input("Flight Code", key="queue_codigo")
+        precio = st.number_input("Base Price", min_value=0, key="queue_precio")
+        pasajeros = st.number_input("Passengers", min_value=0, key="queue_pasajeros")
+        origen = st.text_input("Origin", key="queue_origen")
+        destino = st.text_input("Destination", key="queue_destino")
+        hora = st.text_input("Departure Time (HH:MM)", key="queue_hora")
+        promocion = st.checkbox("Discount", key="queue_promocion")
+        alerta = st.checkbox("Alert", key="queue_alerta")
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("Add to Queue"):
+               if not codigo:
+                st.warning("Flight code is required")
+               else:
+                  val = Flight.extractNum(codigo)
+                  # Check if it's already in the AVL tree
+                  if avl.search(val) is not None:
+                    st.error(f"Flight {codigo} already exists in the tree")
+                  # Check if it's already in the queue
+                  elif any(n.getValue().getCodigoComp() == val for n in st.session_state.insertion_queue):
+                    st.error(f"Flight {codigo} is already in the queue")
+                  else:
+                    flight = Flight(codigo, origen, destino, hora, precio, pasajeros, promocion, alerta)
+                    node = Node(flight)
+                    st.session_state.insertion_queue.append(node)
+                    st.success(f"Flight {codigo} added to queue")
+                    st.rerun()
+        with col_b:
+            if st.button("Cancel"):
+                st.rerun()
                 
-    # --- Operaciones CRUD ---
+    @st.dialog("Pending Insertions")
+    def queue_dialog():
+        if not st.session_state.insertion_queue:
+            st.info("No pending insertions")
+            return
+
+        st.markdown("### Flights in queue")
+        for i, n in enumerate(st.session_state.insertion_queue):
+            f = n.getValue()
+            st.markdown(f"""
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                padding:8px 12px;
+                margin-bottom:6px;
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                border-radius:8px;
+                font-size:13px;
+            ">
+                <span style="
+                    background:#f59e0b;
+                    color:white;
+                    border-radius:50%;
+                    width:22px;
+                    height:22px;
+                    display:inline-flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-weight:700;
+                    font-size:11px;
+                ">{i+1}</span>
+                <strong>{f.getCodigo()}</strong>
+                <span style="color:#64748b">{f.getOrigen()} → {f.getDestino()}</span>
+                <span style="margin-left:auto; color:#94a3b8">${f.getPrecioBase()}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.divider()
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("▶ Process Queue", use_container_width=True, key="process_q"):
+                for n in st.session_state.insertion_queue:
+                  avl.insertionQueue(n)
+                st.session_state.insertion_queue = []
+                st.session_state.processing_queue = True
+                st.rerun()
+        with col_b:
+            if st.button("🗑 Clear", use_container_width=True, key="clear_q"):
+                st.session_state.insertion_queue = []
+                st.rerun()
+    # End Item 3.      
+    # --- CRUD Operations ---
     if st.button("Insert Flight", use_container_width=True): 
         insert_modal()
 
@@ -483,49 +587,57 @@ with col1:
         
     st.divider()
     
-    # Item 2 — Version management
+# Item 2 — Version management
     st.markdown("### Versions")
 
-    # Save version
+    # Input field where the user types the name for the new version
     version_name = st.text_input("Version name", key="version_name")
     if st.button("Save Version", use_container_width=True):
+        # Validate that the name is not empty
         if not version_name.strip():
             st.warning("Enter a version name")
+        # Validate that the tree has at least one node before saving
         elif avl.root is None:
             st.warning("Tree is empty")
         else:
+            # Save the current tree state under the given name
             service.save_version(version_name.strip())
             st.success(f"Version '{version_name}' saved")
 
-    # List and restore versions
+    # Load the list of saved versions from disk
     versions = service.list_versions()
     if versions:
+        # Support both plain string lists and lists of dicts with a "name" key
         version_options = [v["name"] for v in versions] if isinstance(versions[0], dict) else versions
+        # Dropdown so the user can pick which version to restore or delete
         selected = st.selectbox("Saved versions", version_options, key="version_select")
 
         col_r, col_d = st.columns(2)
         with col_r:
+            # Restore rebuilds the tree from the saved JSON snapshot
             if st.button("Restore", use_container_width=True):
                 service.restore_version(selected)
                 st.success(f"Restored '{selected}'")
                 st.rerun()
         with col_d:
+            # Delete removes the version from memory and from disk
             if st.button("Delete", use_container_width=True):
                 service.delete_version(selected)
                 st.success(f"Deleted '{selected}'")
                 st.rerun()
     else:
+        # Shown when no versions have been saved yet
         st.caption("No saved versions yet")
     # End Item 2
 
-    # --- Control de profundidad ---
+    # --- Depth Control ---
     st.markdown("### Depth Control")
     depth = st.number_input("Max Depth", value=avl.limite)
     if depth != avl.limite:
         avl.setLimite(depth)
         st.rerun()
 
-    # --- Eliminar nodo de menor rentabilidad ---
+    # --- Remove least profitable node ---
     if st.session_state.get("last_deleted"):
         d = st.session_state.last_deleted
         st.success(f"Deleted Node: **{d['code']}** — Profitability: **${d['profitability']:,.2f}**")
@@ -535,24 +647,35 @@ with col1:
             st.warning("Tree is empty")
         else:
             try:
-                node = avl.findMinProfit()
-                if node is None:
+                codigo, profitability = service.deleteMinProfit()
+                if codigo is None:
                     st.warning("There are no nodes to delete")
                 else:
-                    code = node.getValue().codigo
-                    profitability = avl.getProfit(node)
-                    avl.deleteMinProfit()
                     st.session_state.last_deleted = {
-                        "code": code,
+                        "code": codigo,
                         "profitability": profitability
                     }
                     st.rerun()
             except Exception as e:
                 st.error(f"Error: {e}")
-
+    
+    if st.button("🔍 Debug Balance"):
+     if avl.root:
+        nodes = avl.copyBreadthFirstSearch()
+        debug_info = []
+        for n in nodes:
+            bf = avl.getBalanceFactor(n)
+            depth = avl.getDepth(n)
+            debug_info.append({
+                "codigo": n.getValue().getCodigo(),
+                "bf": bf,
+                "depth": depth,
+                "parent": n.getParent().getValue().getCodigo() if n.getParent() else "ROOT"
+            })
+        st.json(debug_info)
 
 # ===============================
-# COLUMNA CENTRAL — Visualización
+# CENTER COLUMN — Visualization
 # ===============================
 with col2:
 
@@ -568,7 +691,7 @@ with col2:
         st.info("BST vacío")
     else:
         G_bst, pos_bst = build_graph(bst.root)
-        fig_bst, ax_bst = plt.subplots(figsize=(8, 4))
+        fig_bst, ax_bst = plt.subplots(figsize=(12, 6))
         nx.draw(
             G_bst, pos_bst,
             with_labels=True,
@@ -581,9 +704,8 @@ with col2:
         st.pyplot(fig_bst)
         plt.close(fig_bst)
 
-
 # ===============================
-# MÉTRICAS (llamadas desde avl, tree y flightService)
+# METRICS (from avl, tree and flightService)
 # ===============================
 metrics = service.get_metrics() if avl.root else {}
 height = metrics.get("altura", 0)
@@ -593,12 +715,36 @@ mass_cancellations = metrics.get("cancelaciones_masivas", 0)
 bst_height = bst.heightTree() if bst.root else 0
 bst_leaves = bst.countLeaves() if bst.root else 0
 
+# Item 3 — Process insertion queue
+if st.session_state.get("processing_queue"):
+    st.session_state.processing_queue = False
+
+    while len(avl.queue) > 0:
+        node, conflict = avl.processNextInQueue()  
+        if node:
+            bst.insertionQueue(Node(node.getValue()))
+            bst.processNextInQueue() 
+
+            avl.recalculatePrices()
+            tree_container.empty()
+            with tree_container:
+                draw_tree(avl)
+                
+            if conflict:
+             st.toast(conflict, icon="⚠️") 
+             
+            time.sleep(0.6)
+
+    st.rerun()
+    
+# End Item 3
+
 # ===============================
-# COLUMNA DERECHA — Métricas y búsqueda
+# RIGHT COLUMN — Metrics and search
 # ===============================
 with col3:
 
-    # --- Métricas AVL ---
+    # --- AVL Metrics ---
     st.subheader("AVL Metrics")
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Height", height)
@@ -611,7 +757,7 @@ with col3:
 
     st.divider()
 
-    # --- Métricas BST ---
+    # --- BST Metrics ---
     st.subheader("BST Metrics")
     b1, b2 = st.columns(2)
     b1.metric("Height", bst_height)
@@ -619,7 +765,7 @@ with col3:
 
     st.divider()
 
-    # --- Recorridos animados ---
+    # --- Animated traversals ---
     st.subheader("Traversals")
     t1, t2 = st.columns(2)
     t3, t4 = st.columns(2)
@@ -635,7 +781,7 @@ with col3:
 
     st.divider()
 
-    # --- Búsqueda de vuelo ---
+    # --- Flight search ---
     st.subheader("Search Flight")
     code = st.text_input("Flight Code")
 
@@ -645,17 +791,49 @@ with col3:
 
         if nodo:
             f = nodo.getValue()
-            st.session_state.highlight = f.codigo
+            st.session_state.highlight = f.getCodigo()
             st.session_state.recorrido = []
             st.success("Found")
             with tree_container:
                 draw_tree(avl)
             st.json({
-                "codigo": f.codigo,
-                "origen": f.origen,
-                "destino": f.destino,
+                "codigo": f.getCodigo(),
+                "origen": f.getOrigen(),
+                "destino": f.getDestino(),
+                "precio_final": nodo.getFinalPrice(),
+                "es_critico": nodo.getIsCritical(), 
+                "promocion": f.getPromocion(),
+                "alerta": f.getAlerta(),
                 "rentabilidad": avl.getProfit(nodo)
             })
         else:
             st.session_state.highlight = None
             st.error("Not found")
+            
+
+    # Item 3 — Queue button + dialog
+    if st.session_state.insertion_queue:
+        count = len(st.session_state.insertion_queue)
+
+        st.markdown(f"""
+        <div style="
+            margin-top: 8px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+            cursor: pointer;
+        ">
+            <span style="font-size:13px; font-weight:600; color:#92400e;">
+                ✈️ {count} pending insertion{'s' if count > 1 else ''}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("Pending Insertions", use_container_width=True, key="open_queue_dialog"):
+            queue_dialog()
+
+    if st.button("Queue Flight", use_container_width=True):
+        queue_modal()
+            
+    # End Item 3 Button
