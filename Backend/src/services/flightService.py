@@ -78,7 +78,6 @@ class FlightService:
             print("Flight not found.")
 
     # UPDATE
-    # UPDATE
     def update_flight(self, codigo, new_data):
         numero = Flight.extractNum(codigo)
         node = self.tree.search(numero)
