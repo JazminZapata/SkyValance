@@ -35,27 +35,26 @@ def buildByTopology(data, parent=None):
         return None
 
     flight = Flight(
-        str(data["codigo"]), # # Convertimos a string para asegurar que el código sea iterable
-                            # y poder extraer correctamente la parte numérica para comparación ya que en algunos casos el codigo viene como numero puro o string
-        data["origen"],
-        data["destino"],
-        data["horaSalida"],
-        data["precioBase"],
-        data["pasajeros"],
-        data["promocion"],
-        data["alerta"]
+        str(data["code"]),
+        data["origin"],
+        data["destination"],
+        data["departureTime"],
+        data["basePrice"],
+        data["passengers"],
+        data["promotion"],
+        data["alert"]
     )
 
-# We just create the node with the flight and then we assign the balance factor, height and final price, then we call recursively for the left and right child until we reach a leaf (a node without descendants)
+    # We just create the node with the flight and then we assign the balance factor, height and final price, then we call recursively for the left and right child until we reach a leaf (a node without descendants)
     node = Node(flight)
-    # 2. Asignamos el padre al nodo recién creado
+    # Assign the parent to the newly created node
     node.setParent(parent)
     
-    node.setBalanceFactor(data.get("factorEquilibrio"))
-    node.setHeight(data.get("altura"))
-    node.setFinalPrice(data.get("precioFinal"))
-    node.setLeftChild(buildByTopology(data["izquierdo"], parent=node))
-    node.setRightChild(buildByTopology(data["derecho"], parent=node))
+    node.setBalanceFactor(data.get("balanceFactor"))
+    node.setHeight(data.get("height"))
+    node.setFinalPrice(data.get("finalPrice"))
+    node.setLeftChild(buildByTopology(data["left"], parent=node))
+    node.setRightChild(buildByTopology(data["right"], parent=node))
 
     return node
 

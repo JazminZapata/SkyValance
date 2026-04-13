@@ -687,17 +687,18 @@ if st.session_state.get("processing_queue"):
     while len(avl.queue) > 0:
         node, conflict = avl.processNextInQueue()  
         if node:
-            bst.insertionQueue(Node(node.getValue()))
-            bst.processNextInQueue() 
+            if service.bst and service.bst.root:
+                bst.insertionQueue(Node(node.getValue()))
+                bst.processNextInQueue() 
 
             avl.recalculatePrices()
             tree_container.empty()
             with tree_container:
                 draw_tree(avl)
-                
+                    
             if conflict:
-             st.toast(conflict, icon="⚠️") 
-             
+                st.toast(conflict, icon="⚠️") 
+                
             time.sleep(0.6)
 
     st.rerun()

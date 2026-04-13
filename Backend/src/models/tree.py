@@ -467,8 +467,6 @@ class Tree:
         # Base income
         profitability = flight.getPasajeros() * finalPrice
         # Discount
-        if flight.getPromocion():
-            profitability -= 50
         return profitability
 
     def findMinProfit(self):

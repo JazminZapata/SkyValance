@@ -58,9 +58,12 @@ class FlightService:
         self.history.save(self.tree, self.bst)
         self.tree.insert(Node(flight))
         # Sync BST — insert without balancing
-        if self.bst:
+        if self.bst.root:
             self.bst.insert(Node(flight))
+        self.tree.recalculatePrices() 
         print(f"Flight {flight.getCodigo()} created.")
+        
+        self.tree.recalculatePrices()
 
     # DELETE
     def delete_flight(self, codigo):
@@ -76,6 +79,8 @@ class FlightService:
             print(f"Flight {codigo} deleted.")
         else:
             print("Flight not found.")
+            
+        self.tree.recalculatePrices()
 
     # UPDATE
     def update_flight(self, codigo, new_data):
@@ -109,6 +114,8 @@ class FlightService:
             print(f"Flight {codigo} updated.")
         else:
             print("Flight not found.")
+            
+        self.tree.recalculatePrices()
 
     # CANCEL — removes the node and its entire subtree
     def cancel_flight(self, codigo):
@@ -127,6 +134,8 @@ class FlightService:
             print(f"Flight {codigo} and subtree cancelled.")
         else:
             print("Flight not found.")
+            
+        self.tree.recalculatePrices()
 
     # UNDO (Ctrl + Z)
     def undo(self):
