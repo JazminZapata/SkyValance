@@ -40,7 +40,7 @@ class VersionManager:
             print(f"Version '{name}' not found.")
             return
 
-        from models.loader import buildByTopology
+
         entry = self.versions[name]
 
         # Rebuild the AVL tree from the saved JSON

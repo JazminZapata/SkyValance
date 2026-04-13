@@ -25,6 +25,8 @@ class Tree:
         for node in self.copyBreadthFirstSearch():
             is_critical = self.isCritical(node)
             node.setIsCritical(is_critical)
+            # Set alert flag based on critical status
+            node.getValue().setAlerta(is_critical)
             price = node.getValue().getPrecioBase()
             # Apply 25% surcharge if node exceeds depth limit
             if is_critical:
@@ -32,7 +34,7 @@ class Tree:
             # Apply 10% discount if flight has a promotion
             if node.getValue().getPromocion():
                 price = price * 0.90
-            node.setFinalPrice(price)  
+            node.setFinalPrice(price)
     # Final Item 6.
     
     # Method to get the root of the tree

@@ -74,6 +74,7 @@ class Flight:
     # For example: "FL1234" -> 1234, used for numeric comparisons in the tree
     @staticmethod
     def extractNum(text):
+        text = str(text)  # handle both strings and numbers
         nums = ''.join(filter(str.isdigit, text)) # filters digits and joins them into a string
         if nums:
             return int(nums)
